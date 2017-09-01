@@ -1,0 +1,146 @@
+% !Mode:: "TeX:UTF-8"
+\documentclass{article}
+\input{en_preamble.tex}
+\input{xecjk_preamble.tex}
+\setCJKmainfont{STKaiti} % 如果请替换为本地系统有的字体
+%中文断行
+\XeTeXlinebreaklocale "zh"
+\XeTeXlinebreakskip = 0pt plus 1pt minus 0.1pt
+\begin{document}
+\title{共轭梯度法}
+\author{}
+\date{\today}
+\maketitle
+%\tableofcontents
+%\newpage
+\subsection{共轭梯度法解方程的算法流程}
+
+例1: 设方程组
+\begin{equation}\label{eq:AB}
+\begin{bmatrix}
+6 & 3\\
+3 & 2\\
+\end{bmatrix}
+\begin{bmatrix}
+x_1\\
+x_2\\
+\end{bmatrix}
+=\begin{bmatrix}
+0\\
+-1\\
+\end{bmatrix}
+\end{equation}
+取 $x^{(0)}=[0,0]^T$,　试用共轭梯度法求解方程组.
+
+解:共轭梯度法解方程组的计算程序如下
+取一个厨师向量 $x_0$,　计算 $x_0=Ax_0-b$, 取 $g0=r0$
+\begin{equation}\label{eq:AC}
+\left\{
+\begin{array}{l}
+\alpha_k = \frac{(r_k,r_k)}{(Ag_K,g_k)}\\
+X_{k+1} = X_k+\alpha_k g_k,r_{k+1}=r_k+\alpha_kAg_k,k=0,1,2,\cdots\\
+\lambda_k=\frac{(r_{k+1},r_{k+1})}{(r_K,r_k)}\\
+g_{k+1}=r_{k+1}+\lambda_kg_k\\
+\end{array}\right.
+\end{equation}
+
+具体计算过程
+
+\begin{equation}
+\begin{bmatrix}
+6 & 3\\
+3 & 2\\
+\end{bmatrix}
+\begin{bmatrix}
+x_1\\
+x_2\\
+\end{bmatrix}
+=\begin{bmatrix}
+0\\
+-1\\
+\end{bmatrix}
+\end{equation}
+
+其中　
+
+$$
+A=\begin{bmatrix}
+6 & 3\\
+3 & 2\\
+\end{bmatrix},
+\quad
+b=\begin{bmatrix}
+x_1\\
+x_2\\
+\end{bmatrix}
+$$
+
+取 $x_0=x^{(0)}=[0,0]^T$, 则代入\eqref{eq:AB}式得
+
+$$
+\alpha_0=-\frac{(r_0,r_0)}{(Ag_0,g_0)}=\frac{
+\begin{bmatrix}
+0 & 1\\
+\end{bmatrix}
+\begin{bmatrix}
+0 \\
+1\\
+\end{bmatrix}
+}{\begin{bmatrix}
+0 & 1\\
+\end{bmatrix}
+\begin{bmatrix}
+6 & 3\\
+3 & 2\\
+\end{bmatrix}
+\begin{bmatrix}
+0 \\
+1\\
+\end{bmatrix}
+}=-\frac{1}{2}
+$$
+
+$$
+X_1 = X_0+\alpha_0 g_0=[0,\frac{1}{2}]^T
+$$
+
+$$
+r_1=r_0+\alpha_0Ag_0=[-\frac{3}{2},0]^T
+$$
+
+$$
+\lambda_k=\frac{(r_1,r_1)}{(r_0,r_0)}=\frac{9}{4}
+$$
+
+$$
+g_1=r_1+\lambda_0g_0=[-\frac{3}{2},\frac{9}{4}]^T
+$$
+
+进一步计算可得
+
+$$
+\alpha_1=-\frac{(r_1,r_1)}{(Ag_1,g_1)}=-\frac{2}{3}
+$$
+
+$$
+X_2 = X_1+\alpha_1 g_1=[1,-2]^T
+$$
+
+$$
+r_2=r_1+\alpha_1Ag_1=[0,0]^T
+$$
+
+$$
+\lambda_1=\frac{(r_2,r_2)}{(r_1,r_1)}=0
+$$
+
+$$
+g_2=r_2+\lambda_1g_1=[0,0]^T
+$$
+
+则可知方程组的解 $x=X_2 = [1,-2]^T$.
+\newpage
+\nocite{*}
+\bibliography{ref}
+\end{document}
+
