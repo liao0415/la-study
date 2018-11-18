@@ -1,0 +1,143 @@
+% !Mode:: "TeX:UTF-8"
+\documentclass{article}
+\input{en_preamble.tex}
+\input{xecjk_preamble.tex}
+\setCJKmainfont{STKaiti} % 如果请替换为本地系统有的字体
+%中文断行
+\XeTeXlinebreaklocale "zh"
+\XeTeXlinebreakskip = 0pt plus 1pt minus 0.1pt
+\begin{document}
+\title{用 $AMIB$ 方法求解椭圆界面问题}
+\author{李奥}
+\date{\today}
+\maketitle
+\tableofcontents
+%\newpage
+\section{摘要}
+本文介绍了使用分片常系数求解二维椭圆界面问题，并且这个问题有二阶精度。这种增广的 $MIB$ 与标准的 $MIB$,$IIM$, 明显跳跃$IIM$ 在一些关键性质有着无缝链接，并且有新的快速界面算法。基于 $MIB$,零阶和一阶跳跃点都会强制通过任意的凸界面，并在靠近界面的　Cartesian nodes处得到虚拟值。通过使用这样的虚拟值，提出了一个简单的程序来重建笛卡尔导数跳量作为辅助变量，并将它们与跳量校正的泰勒级数展开耦合，这使我们能够使跨越界面的中心差分是二阶的。此外，通过使用Schur补来‘解除’辅助变量和函数值的代数计算，通过使用快速傅立叶变换（FFT）可以有效地反演离散拉普拉斯算子。在我们的数值实验中发现，求解辅助系统的迭代次数与网格尺寸的关系不大。
+$AMIB$ 优点\\
+1).$CPU$ 的时间明显减少;
+2).在处理复杂界面问题时保二阶精度; 
+
+\section{简介}
+\subsection{模型}
+
+\begin{equation}
+-\nabla \cdot (\beta\nabla u) = f(x,y),\,\ (x,y)\in \Omega
+\end{equation}
+Dilichlet 边界条件
+
+\begin{equation}
+u(x,y) = g(x,y),\,\ (x,y)\in \partial \Omega
+\end{equation}
+\subsection{符号}
+\begin{tabular}{ |l|l| }   
+\hline   
+\multicolumn{2}{|c|}{符号说明} \\   
+\hline
+符号 & 含义 \\
+\hline
+$\Omega$ & 二维长方形区域 \\
+\hline
+$nx$ & $x$ 方向剖分的段数 \\
+\hline
+$ny$ & $y$ 方向剖分的段数 \\
+\hline
+$hx$ &  $x$ 方向每段的长度\\
+\hline
+$hy$ &  $y$ 方向每段的长度 \\
+\hline
+$\mu$ & $the \,\ viscosity \,\ coefficient$ \\
+\hline
+$k$ & $the \,\ permeability \,\ tensor$ \\
+\hline 
+$NC$ & 代表 $cell$ 的个数 \\
+\hline
+$NE$ & 代表总的 $edge$ 的个数 \\
+\hline
+\end{tabular}
+
+\section{模型}
+\begin{equation*}
+\begin{cases}
+\begin{aligned}
+\frac{\mu}{k}\mathbf{u} + \nabla p & = 0 \quad in \,\ \Omega = (0,1)\times (0,1) \\
+\nabla \cdot \mathbf{u} & = f \quad in \,\ \Omega \\
+\mathbf {u} & = 0 \quad on \,\ \partial \Omega
+\end{aligned}
+\end{cases}
+\end{equation*}
+
+且有 \\
+\begin{equation*}
+\int_{\Omega}f dxdy = 0
+\end{equation*}
+
+记 $u$ 为 $\mathbf{u}$ 在 $x$ 方向的分量，$v$ 为 $\mathbf{u}$ 在 $y$ 方向的分量,则有 \\
+
+\begin{equation*}
+\begin{cases}
+\begin{aligned}
+\frac{\mu}{k}\cdot u + \partial_x p & = 0 \quad (1) \\
+\frac{\mu}{k}\cdot v + \partial_y p & = 0 \quad (2) \\
+\partial_x u + \partial_y v & = f \quad (3)
+\end{aligned}
+\end{cases}
+\end{equation*}
+
+\section{离散后组装矩阵}
+利用一阶向前差分把方程变成差分方程，现在从 $edge$ 和 $cell$ 的角度考虑模型。 \\
+
+对于 $(1)$, 从内部纵向 $edge$ 的角度考虑:
+我们需要找到内部纵向 $edge$ 所对应的左手边的 $cell$ 和右手边的 $cell$. 左右两边的$cell$ 所对应的 $p$ 分别记为 $p_{l}$、$p_{r}$.$u$ 为 $edge$ 的中点，记为 $u_m$。按照 $mesh$ 里的编号规则排序。\\
+
+则每条内部边上所对应的差分方程为:
+
+\begin{equation*}
+\frac{\mu}{k} \cdot u_m + \frac{p_r - p_l}{hx} = 0
+\end{equation*}
+
+对于 $(2)$,从内部横向 $edge$ 的角度考虑:
+我们需要找到内部横向 $edge$ 所对应的左手边的 $cell$ 和右手边的 $cell$. $cell$ 所对应的 $p$ 与 $(1)$ 中的相同。$v$ 为 $edge$ 的中点，记为 $v_m$。\\
+
+则每条内部边上所对应的差分方程为:\\
+
+\begin{equation*}
+\frac{\mu}{k} \cdot v_m + \frac{p_l - p_r}{hy} = 0
+\end{equation*}
+
+对于 $(3)$, 从 $cell$ 的角度考虑:
+由于单元是四边形单元，我们记单元所对应边的局部编号为[0,1,2,3](StructureQuadMesh.py 里的网格)，第 $i$ 个单元所对应的边记为 $e_{i,0},e_{i,1},e_{i,2},e_{i,3}$。\\
+
+则 $(3)$ 式第 $i$ 个单元所对应的差分方程为:\\
+
+\begin{equation*}
+\frac{u_{e_{i,1}} - u_{e_{i,3}}}{hx} + \frac{v_{e_{i,2}} - v_{e_{i,0}}}{hy} = f_i
+\end{equation*}
+
+我们需要生成一个 $(NE+NC)\times(NE+NC)$的系数矩阵，把它看成分块矩阵
+\begin{equation*}
+\begin{pmatrix}
+A_{1,1} & A_{1,2} \\
+A_{2,1} & A_{2,2}
+\end{pmatrix}
+\end{equation*}
+
+其中 \\
+
+\begin{equation*}
+\begin{aligned}
+A_{1,1} : NE\times NE \\
+A_{1,2} : NE\times NC \\
+A_{2,1} : NC\times NE \\
+A_{2,2} : NC\times NC
+\end{aligned}
+\end{equation*}
+
+$A_{1,1}$ 对应的是 $(1),(2)$ 两式的第一项，即含有 $u,v$ 的项，$A_12$ 对应的是 $(1),(2)$ 两式的第二项。
+
+\newpage
+\nocite{*}
+\bibliography{ref}
+\end{document}
+
