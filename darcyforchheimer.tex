@@ -1,591 +1,1815 @@
 % !Mode:: "TeX:UTF-8"
-\documentclass[leqno]{article}
-\input{en_preamble.tex}
-\input{xecjk_preamble.tex}
-\setCJKmainfont{STKaiti} % 如果请替换为本地系统有的字体
-%中文断行
-\XeTeXlinebreaklocale "zh"
-\XeTeXlinebreakskip = 0pt plus 1pt minus 0.1pt
-\usetikzlibrary{decorations,arrows}
-\usetikzlibrary{decorations.markings}
-\makeatletter % `@' now normal "letter"
-\@addtoreset{equation}{section}
-\makeatother  % `@' is restored as "non-letter"
-\renewcommand\theequation{\oldstylenums{\thesection}%
-                   .\oldstylenums{\arabic{equation}}}
+\documentclass[notheorems,serif]{beamer}
+
+%选用主题
+%\usetheme{Rochester}
+\usetheme{default}
+%\usetheme{AnnArbor}
+%\usetheme{Antibes}
+%\usetheme{Bergen}
+%\usetheme{Berkeley}
+%\usetheme{Berlin}
+%\usetheme{Boadilla}
+\usetheme{CambridgeUS}
+%\usetheme{Copenhagen}
+%\usetheme{Darmstadt}
+%\usetheme{Dresden}
+%\usetheme{Frankfurt}
+%\usetheme{Goettingen}
+%\usetheme{Hannover}
+%\usetheme{Ilmenau}
+%\usetheme{JuanLesPins}
+%\usetheme{Luebeck}
+%\usetheme{Madrid}
+%\usetheme{Malmoe}
+%\usetheme{Marburg}
+%\usetheme{Montpellier}
+%\usetheme{PaloAlto}
+%\usetheme{Pittsburgh}
+%\usetheme{Rochester}
+%\usetheme{Singapore}
+%\usetheme{Szeged}
+%\usetheme{Warsaw}
+
+% As well as themes, the Beamer class has a number of color themes
+% for any slide theme. Uncomment each of these in turn to see how it
+% changes the colors of your current slide theme.
+
+%\usecolortheme{albatross}
+\usecolortheme{beaver}
+%\usecolortheme{beetle}
+%\usecolortheme{crane}
+%\usecolortheme{dolphin}
+%\usecolortheme{dove}
+%\usecolortheme{fly}
+%\usecolortheme{lily}
+%usecolortheme{orchid}
+%\usecolortheme{rose}
+%\usecolortheme{seagull}
+%\usecolortheme{seahorse}
+%\usecolortheme{whale}
+%\usecolortheme{wolverine}
+
+%设置被cover的内容不显示
+%\setbeamercovered{transparent}
+
+%\useinnertheme{rounded}
+%\usecolortheme{default}
+
+
+
+%调用包
+\usepackage[no-math, cm-default]{fontspec}
+\usepackage{xltxtra}
+\usepackage{xunicode}   
+\usepackage{xcolor}
+\usepackage{amsmath,amssymb}
+\usepackage{multimedia}
+\usepackage{subfigure}
+\usepackage{animate}
+\usepackage{multirow}
+\usepackage{slashbox}
+\usepackage{algorithm}
+\usepackage{algorithmic}
+\usepackage{xkeyval}
+\usepackage{todonotes}
+\presetkeys{todonotes}{inline}{} 
+\usepackage{multicol}
+\usepackage{changes}
+\usepackage{fancybox}
+\usepackage{verbatim}
+%\usepackage{lipsum}% <- For dummy text
+\definechangesauthor[name={Huayi Wei}, color=red]{why}
+
+\renewcommand{\algorithmicrequire}{\textbf{INPUT:}}
+\renewcommand{\algorithmicensure}{\textbf{OUTOUT:}}
+\makeatletter
+\renewcommand*\env@matrix[1][\arraystretch]{%
+  \edef\arraystretch{#1}%
+  \hskip -\arraycolsep
+  \let\@ifnextchar\new@ifnextchar
+  \array{*\c@MaxMatrixCols c}}
+\makeatother
+
+
+\input{pptheader.tex}
+
+
 \begin{document}
-\title{Darcy-forchheimer Equation的块中心差分方法(二维)}
-\author{李奥}
+
+\title[]{A Block-centered Finite Difference Method For The Darcy-Forchheimer Model}
+\author[]{Ao Li\\
+}
+\institute[XTU]{
+\vspace{5pt}
+School of Mathematics and Computational Science\\
+ Xiangtan University
+\vspace{0.5cm}
+}
 \date{\today}
-\maketitle
-\tableofcontents
-\newpage
-\section{符号}
-\begin{tabular}{ |l|l| }   
-\hline   
-\multicolumn{2}{|c|}{符号说明} \\  
-\hline
-符号 & 意义 \\
-\hline
-$\Omega$ & $(0,1)\times(0,1)$(二维区域) \\
-\hline
-$p$ & 压强(压力) \\
-\hline
-$\boldsymbol{u}$ & 流体速度 \\
-\hline
-$\mu$ & 黏性系数 \\
-\hline
-$K$ & 渗透张量 \\
-\hline
-$k$ & 正数且 K = kI(I 是单位矩阵) \\
-\hline 
-$\beta$ & 非线性项系数 \\
-\hline
-$\rho$ & 流体密度 \\
-\hline
-$\boldsymbol{f}$ & $\boldsymbol{f} \in (L(\Omega)^2)^2$, a vector function\\
-\hline
-$g(\boldsymbol{x})$ & $g(\boldsymbol{x}) \in L^2(\Omega)$, a scalar function \\
-\hline 
-$nx$ & $x$ 方向剖分的段数 \\
-\hline
-$ny$ & $y$ 方向剖分的段数 \\
-\hline
-$h_x$ & $x$ 方向剖分的步长 \\
-\hline
-$h_y$ & $y$ 方向剖分的步长 \\
-\hline
-$NC$ & 单元个数 \\
-\hline
-$NE$ & 边的个数 \\
-\hline
-\end{tabular}
 
-\section{模型}
+\frame[plain]{\titlepage}
+\AtBeginSection[]{
+
+  \frame<beamer>{ 
+
+    \frametitle{Outline}   
+
+    \tableofcontents[currentsection] 
+
+  }
+}
+
+
+
+% Introduce backgroud knowledge
+\section{Background}
+\begin{frame}
+\frametitle{Background}
+Darcy's law
+\[\boldsymbol{u} =  - \frac{\boldsymbol{K}}{\mu }\nabla p,\]
+
+\begin{itemize}
+\small
+\item $ \boldsymbol{K} $~~the permeability tensor,
+\item $\mu $~~the viscosity.
+\end{itemize}
+%It is valid when the Darcy velocity $\boldsymbol{u}$ is extremely small. 
+When the velocity is relatively large, Darcy's law should be replaced by the so-called Darcy-Forchheimer equation.
 \begin{equation*}
-\begin{cases}
-\begin{aligned}
-(\frac{\mu}{k} + \beta\rho|\boldsymbol{u}|)\boldsymbol{u} + \nabla p & = \boldsymbol{f} \quad in \,\ \Omega = (0,1)\times (0,1) \\
-\nabla \cdot \boldsymbol{u} & = g \quad in \,\ \Omega \\
-\boldsymbol {u} & = 0 \quad on \,\ \partial \Omega
-\end{aligned}
-\end{cases}
+\frac{\mu }{\rho }{\boldsymbol{K}^{ - 1}}\boldsymbol{u} + \frac{\beta }{\rho }\left| \boldsymbol{u} \right|\boldsymbol{u} + \nabla p = \boldsymbol{0}.
 \end{equation*}
+\begin{itemize}
+\small
+\item $ \rho $ ~~the density of the fluid,
+\item $ \beta $ ~~the Forchheimer number, controls the strength of nonlinearity.
+\end{itemize}
+\end{frame}
 
+\begin{frame}
+\frametitle{Background}
+Many numerical methods of the Darcy-Forchheimer model have been developed
+(~\cite{Park2005}~\cite{Wheeler2008}~\cite{Pan2012}
+~\cite{Rui2012}~\cite{RuiLiu2015}~\cite{Wang2015} etc.).
 
-记$\boldsymbol{u} = \dbinom{u}{v}$,那么有\\
+\medskip
+Except~\cite{Wheeler2008}, \cite{RuiLiu2015}, no other work concentrates on fast solvers of the nonlinear system which will be the topic of this presentation.
 
-\begin{equation*}
-\begin{cases}
+\end{frame}
+\section{The Problem}
+\begin{frame}
+\frametitle{The Problem}
+The Darcy-Forchheimer model:
+\begin{equation}\label{Eqn::DF equation of the Prob}
+\frac{\mu }{\rho }{\boldsymbol{K}^{ - 1}}\boldsymbol{u} + \frac{\beta }{\rho }\left| \boldsymbol{u} \right|\boldsymbol{u} + \nabla p = \boldsymbol{f}\,\,\,\text{in}\,\,\Omega ,
+\end{equation}
+\begin{equation}\label{Eqn::divergence equation of the Prob}
+\text{div}\, \boldsymbol{u} = g\,\,\text{in}\,\,\Omega ,
+\end{equation}
+\begin{equation}\label{Eqn::N boundary of the Pro}
+\boldsymbol{u} \cdot \boldsymbol{n} = {g_N}\,\,\text{on}\,\,{\partial \Omega},
+\end{equation}
+\end{frame}
+
+\begin{frame}
+\frametitle{The Problem}
+$ g $ and $ g_N $ satisfy the compatibility condition
+\begin{equation}\label{Eqn::compatibility condition}
+\int_\Omega  {g\left( \boldsymbol{x} \right)} \, {\rm d}\boldsymbol{x} = \int_{\partial \Omega } {{g_N}\left( \sigma  \right)} \, {\rm d}\sigma .
+\end{equation}
+
+\end{frame}
+
+\begin{frame}
+\frametitle{Scaled Formula}
+
+\begin{equation}
+\left\lbrace
 \begin{aligned}
-(\frac{\mu}{k} + \beta\rho|\boldsymbol{u}|)u + \nabla_x p & = f_1 \quad (i) \\
-(\frac{\mu}{k} + \beta\rho|\boldsymbol{u}|)v + \nabla_y p & = f_2 \quad (ii) \\
-\partial_x u + \partial_y v & = g \quad (iii)
-\end{aligned}
-\end{cases}
-\end{equation*}
+(\frac{\mu}{k} + \beta\rho|\boldsymbol{u}|)u + \nabla_x p & = f_1  \\
+(\frac{\mu}{k} + \beta\rho|\boldsymbol{u}|)v + \nabla_y p & = f_2 \\
+\partial_x u + \partial_y v & = g 
+\end{aligned}\right.
+\label{Eqn::scaled formula}
+\end{equation}
 
-\section{差分离散}
 
-利用一阶向前差分把方程变成差分方程，现在从 $cell$ 和 $edge$ 的角度考虑模型。\\
-对于 $(i)$,从内部纵向 $edge$ 的角度考虑:我们需要找到内部纵向 $edge$ 所对应的左手边的 $cell$ 和右手边的 $cell$. 左右两边的$cell$ 所对应的 $p$ 分别记为 $p_{l}$、$p_{r}$.$u$ 为 $edge$ 的$y$ 方向的 $m$ 条边中点，记为 $u_m$。按照 $mesh$ 里的编号规则排序。\\
+\end{frame}
 
-则每条内部边上所对应的差分方程为:
-
-\begin{equation}\label{eq:um}
+\section{Discrete Formulation}
+\begin{frame}
+\frametitle{Discrete Formulation}
+For the first equation of \eqref{Eqn::scaled formula}, we have
+\begin{equation}\label{Eqn:um}
 (\frac{\mu}{k} + \beta\rho\left|\boldsymbol{u}\right|) \cdot u_m + \frac{p_r - p_l}{h^x_{i+1/2}} = f_{1,m}
 \end{equation}
 
 \begin{figure}[H] 
 \centering 
-\includegraphics[scale=0.6]{edge_y.png} 
-\caption{$edge_y$} 
-\label{fig:label} 
+\includegraphics[scale=0.4]{figures/edge_y.eps} 
+\caption{$\Omega_{i+\frac{1}{2}}$} 
+\label{fig:Oi+0.5}
 \end{figure}
+\end{frame}
+\begin{frame}
 
-对于 $(ii)$,从内部横向 $edge$ 的角度考虑:
-我们需要找到内部横向 $edge$ 所对应的左手边的 $cell$ 和右手边的 $cell$. $cell$ 所对应的 $p$ 与 $(i)$ 中的相同。$v$ 为 $edge$ 的$x$ 方向的 $m$ 个中点，记为 $v_m$。\\
-
-则每条内部边上所对应的差分方程为:\\
-
-\begin{equation}\label{eq:vm}
-(\frac{\mu}{k} + \beta\rho\left|\boldsymbol{u}\right|) \cdot v_m + \frac{p_l - p_r}{h^y_{j+1/2}} = f_{2,m}
+\frametitle{Discrete Formulation}
+For the second equation of \eqref{Eqn::scaled formula}, we have
+\begin{equation}\label{Eqn:vm}
+(\frac{\mu}{k} + \beta\rho\left|\boldsymbol{u}\right|) \cdot v_m + \frac{p_a - p_d}{h^y_{j+1/2}} = f_{2,m}
 \end{equation}
 
 \begin{figure}[H] 
 \centering 
-\includegraphics[scale=0.6]{edge_x.png} 
-\caption{$edge_x$} 
-\label{fig:label} 
+\includegraphics[scale=0.4]{figures/edge_x.eps} 
+\caption{$\Omega_{j+\frac{1}{2}}$} 
+\label{fig:Oj+0.5}  
 \end{figure}
+\end{frame}
 
-对于 $(iii)$, 从 $cell$ 的角度考虑:
-由于单元是四边形单元，我们记单元所对应边的局部编号为[0,1,2,3](StructureQuadMesh.py 里的网格)，第 $i$ 个单元所对应的边记为 $e_{i,0},e_{i,1},e_{i,2},e_{i,3}$。\\
-
-则 $(iii)$ 式第 $i$ 个单元所对应的差分方程为:\\
-
-\begin{equation}\label{eq:uv}
-\frac{u_{e_{i,1}} - u_{e_{i,3}}}{h^x_i} + \frac{v_{e_{i,2}} - v_{e_{i,0}}}{h^y_i} = g_i
+\begin{frame}
+\frametitle{Discrete Formulation}
+For the second equation of \eqref{Eqn::scaled formula}, we have
+\begin{equation}\label{Eqn:uv}
+\frac{u_{i,1} - u_{i,3}}{h^x_i} + \frac{v_{i,2} - v_{i,0}}{h^y_i} = g_i
 \end{equation}
 
 \begin{figure}[H] 
 \centering 
-\includegraphics[scale=0.6]{cell.png} 
-\caption{cell} 
-\label{fig:label} 
+\includegraphics[scale=0.4]{figures/cell.eps} 
+\caption{mesh of pressure} 
+\label{fig:label}
 \end{figure}
+\end{frame}
 
-现在我们先求解 $p$, 再求解 $\boldsymbol{u}$.\\
 
-对于 $\eqref{eq:um}$ 我们有
+\section{Solver}
+\begin{frame}
+\frametitle{Termination Criterion}
+The chosen termination criterion is $$ r = r_{u} + r_{p} \leq tol ,$$ 
+where 
+\begin{eqnarray*}
+r_{u} &= &\begin{cases}
+ \left\| \boldsymbol{f} - \frac{\mu }{\rho }{\boldsymbol{K}^{ - 1}}\boldsymbol{u}_h^n + \frac{\beta }{\rho }\left| \boldsymbol{u}_h^n \right|\boldsymbol{u}_h^n + \nabla p_h^n \right\|/\left\| \boldsymbol{f} \right\|, &\quad\text{ when } \left\|\boldsymbol{f} \right\| \neq 0,\\
+ \left\|\boldsymbol{f} - \frac{\mu }{\rho }{\boldsymbol{K}^{ - 1}}\boldsymbol{u}_h^n + \frac{\beta }{\rho }\left| \boldsymbol{u}_h^n \right|\boldsymbol{u}_h^n + \nabla p_h^n \right\|, &\quad\text{ when } \left\| \boldsymbol{f} \right\| = 0.
+ \end{cases}\\
+   r_{p} &=&\begin{cases} 
+  \left\| g - \text{div}\boldsymbol{u}_h^n \right\|/\left\| g \right\|, &\quad\text{ when } \left\| g \right\|\neq 0,\\
+  \left\| g - \text{div}\boldsymbol{u}_h^n \right\|, &\quad\text{ when } \left\| g \right\| = 0.\\
+\end{cases} 
+\end{eqnarray*}
+\begin{itemize}
+\item $tol = 1e-6.$
+\end{itemize}
+\end{frame}
 
-\begin{equation}\label{eq:up}
-u_m = \frac{f_{1,m} - \frac{p_{r} - p_{l}}{h^x_{i+1/2}}}{(\mu/k+\beta\rho\left|\boldsymbol{u}\right|)_m} 
-\end{equation}
-
-对于 $\eqref{eq:vm}$ 我们有
-\begin{equation}\label{eq:vp}
-v_m = \frac{f_{2,m} - \frac{p_{a} - p_{d}}{h^y_{j+1/2}}}{(\mu/k+\beta\rho\left|\boldsymbol{u}\right|)_m} 
-\end{equation}
-
-注: 记$\mu/k+\beta\rho\left|\boldsymbol{u}\right| = C$,  $p_{l,1}$ 、$p_{r,3}$ 、$p_{a,0}$ 和 $p_{d,2}$ 是同一个点处的 $p$, 记为$p_i$.
-
-且有
+\begin{frame}
+\frametitle{Examples}
+\begin{itemize}
+\item Parameters:
+$$\Omega = \left[0,1\right]\times\left[0,1\right], \mu = 2, k = 1, \rho = 1, \beta = 5.$$
+\item Example 1.
+\small
 \begin{equation*}
-\begin{aligned}
-\frac{f_{1,1} - \frac{p_{r,1} - p_{l,1}}{h^x_i}}{C_{i,1}} & = \mathcal{W}_{i,1} \\
-\frac{f_{1,3} - \frac{p_{r,3} - p_{l,3}}{h^x_i}}{C_{i,3}} & = \mathcal{W}_{i,3} \\
-\frac{f_{2,2} - \frac{p_{a,2} - p_{d,2}}{h^y_i}}{C_{i,2}} & = \mathcal{W}_{i,2} \\
-\frac{f_{2,0} - \frac{p_{a,0} - p_{d,0}}{h^y_i}}{C_{i,0}} & = \mathcal{W}_{i,0}
-\end{aligned}
-\end{equation*}\\
-
-\begin{equation*}
-\begin{tikzpicture}
-\draw[very thin,color=black,step=1.5cm](-0.1,-0.1) grid (4.6,4.6);
-\fill[red] (2.25,0.75) circle [radius=1pt];
-\fill[red] (0.75,2.25) circle [radius=1pt];
-\fill[red] (2.25,2.25) circle [radius=1pt];
-\fill[red] (3.75,2.25) circle [radius=1pt];
-\fill[red] (2.25,3.75) circle [radius=1pt];
-
-\node[above] at (2.25,0.75){$p_{d,0}$};
-\node[above] at (0.75,2.25){$p_{l,3}$};
-\node[above] at (2.25,2.25){$p_{i}$};
-\node[above] at (3.75,2.25){$p_{r,1}$};
-\node[above] at (2.25,3.75){$p_{a,2}$};
-\end{tikzpicture}
+\boldsymbol{u} = \begin{pmatrix}
+sin(\pi x)cos(\pi y) \\
+cos(\pi x)sin(\pi y)
+\end{pmatrix}
 \end{equation*}
-\subsection{均匀剖分}
-由于这里的方法是均匀剖分，所以离散形式中的 $x,y$ 方向的步长可以用 $h_x,h_y$ 统一表示。
-\subsubsection{求解$p$的显式格式}
-
-要求解 $p$,我们把 $\eqref{eq:up}$ 和 $\eqref{eq:vp}$ 代入到 $\eqref{eq:uv}$ 即可。但是，我们现在需要分情况讨论: \\
-
-1).当$u_{i,3}$ 与 $v_{i,0}$ 是边界边上中点的值时(左下角的边界函数)，有
-
 \begin{equation*}
-\frac{\mathcal{W}_{i,1} - u_{i,3}}{h_x} + \frac{\mathcal{W}_{i,2} - v_{i,0}}{h_y} = g_i
-\end{equation*}　
-
-整理后得到:
-
-\begin{equation*}
-(\frac{1}{h_x^2C_{i,1}} + \frac{1}{h_y^2C_{i,2}})p_i = g_i - \frac{h_xf_{1,1}}{h_x^2C_{i,1}} - \frac{h_yf_{1,2}}{h_y^2C_{i,2}} + \frac{p_{r,1}}{h_x^2C_{i,1}} + \frac{p_{a,2}}{h_y^2C_{i,2}} + \frac{u_{i,3}}{h_x} + \frac{v_{i,0}}{h_y}
+p = x(1-x)y(1-y)
 \end{equation*}
 
-2).当$u_{e_{i,3}}$ 与 $v_{e_{i,2}}$ 是边界边上中点的值时(左上角的边界单元)，有
-
 \begin{equation*}
-\frac{\mathcal{W}_{e_{i,1}} - u_{e_{i,3}}}{h_x} + \frac{ v_{e_{i,2}} - \mathcal{W}_{e_{i,0}}}{h_y} = g_i
-\end{equation*}　
-
-整理后得到:
-
-\begin{equation*}
-(\frac{1}{h_x^2C_{i,1}} + \frac{1}{h_y^2C_{i,0}})p_i = g_i - \frac{h_xf_{1,1}}{h_x^2C_{i,1}} + \frac{h_yf_{1,0}}{h_y^2C_{i,0}} + \frac{p_{r,1}}{h_x^2C_{i,1}} + \frac{p_{d,0}}{h_y^2C_{i,0}} + \frac{u_{i,3}}{h_x} - \frac{v_{i,2}}{h_y}
+\begin{split}
+\boldsymbol{f} = \begin{pmatrix}
+(\mu/k + \rho\beta\sqrt{sin(\pi x)^2cos(\pi y)^2 + cos(\pi x)^2sin(\pi y)^2)}sin(\pi x)cos(\pi y)\\
+ + (1-2x)y(1-y) \\
+ \\
+(\mu/k + \rho\beta\sqrt{sin(\pi x)^2cos(\pi y)^2 + cos(\pi x)^2sin(\pi y)^2)}cos(\pi x)sin(\pi y)\\
+ + x(1-x)(1-2y)
+\end{pmatrix}
+\end{split}
 \end{equation*}
 
-3).当$u_{i,1}$ 与 $v_{i,0}$ 是边界边上中点的值时(右下角的边界单元)，有
-
 \begin{equation*}
-\frac{ u_{i,1} - \mathcal{W}_{i,3}}{h_x} + \frac{\mathcal{W}_{i,2} - v_{i,0}}{h_y} = g_i
-\end{equation*}　
-
-整理后得到:
-
-\begin{equation*}
-(\frac{1}{h_x^2C_{i,3}} + \frac{1}{h_y^2C_{i,2}})p_i = g_i + \frac{h_xf_{1,3}}{h_x^2C_{i,3}} - \frac{h_yf_{1,2}}{h_y^2C_{i,2}} + \frac{p_{l,3}}{h_x^2C_{i,3}} + \frac{p_{a,2}}{h_y^2C_{i,2}} - \frac{u_{i,1}}{h_x} + \frac{v_{i,0}}{h_y}
+g = 2\pi cos(\pi x)cos(\pi y)
 \end{equation*}
+\end{itemize}
+\end{frame}
 
-4).当$u_{i,1}$ 与 $v_{i,2}$ 是边界边上中点的值时(右上角的边界单元)，有
+\begin{frame}
+\frametitle{Uniform Mesh($h_x = h_y$)}
+\begin{itemize}
+\item Mesh 1. $n_x = n_y = 4, h_x = h_y = 0.25.$ 
+\end{itemize}
+The mesh and d.o.fs are shown as below:
+\begin{figure}[H] 
+\centering 
+\includegraphics[scale=0.46]{figures/uniform_mesh.eps} 
+\caption{Mesh 1} 
+\label{fig:mesh1} 
+\end{figure}
+\end{frame}
 
-\begin{equation*}
-\frac{ u_{i,1} - \mathcal{W}_{i,3}}{h_x} + \frac{ v_{i,2} - \mathcal{W}_{i,0}}{h_y} = g_i
-\end{equation*}　
+\begin{frame}
+\frametitle{Numerical results of Example 1 on Mesh 1}
+\begin{tabular}{ |c|c|c|c|c| }   
+\hline   
+Partition & d.o.fs & iter & $e_{\boldsymbol{u}}$ & $e_p$ \\
+\hline
+$4\times4$ & 56 & 16 & $5.35402941343e-07$ & $2.17929895426e-07$  \\
+$8\times8$ & 208 & 27 &$5.32999586432e-07$ & $8.59274797577e-08$  \\
+$16\times16$ & 800 & 29 &$6.41501689865e-07$ & $7.07320046767e-08$  \\
+$32\times32$ & 3136 & 29 &$7.63058356567e-07$ & $8.10820507175e-08$  \\
+\hline 
+\end{tabular}
+\smallskip
+\begin{itemize}
+\item $e_{\boldsymbol{u}} = \|\boldsymbol{u}-\boldsymbol{u}_h\|_0$
+\item $e_p = \|p-p_h\|_0$
+\end{itemize}
+\end{frame}
 
-整理后得到:
+\begin{frame}
+\frametitle{Numerical results of Example 1 on Mesh 1}
+\begin{tabular}{ |c|c|c|c|c }   
+\hline   
+Partition & d.o.fs & iter & $r_{\boldsymbol{u}}$ & $r_p$ \\
+\hline
+$4\times4$ & 56 & 16 & $3.20005543582e-07$ & $1.90513976635e-16$ \\
+$8\times8$ & 208 & 27 & $4.96386716005e-07$ & $7.62693407192e-16$ \\
+$16\times16$ & 800 & 29 & $6.28461992506e-07$ & $2.79881371122e-15$ \\
+$32\times32$ & 3136 & 29 & $7.32558323432e-07$ & $6.44088729584e-15$ \\
+\hline 
+\end{tabular}
+\end{frame}
 
-\begin{equation*}
-(\frac{1}{h_x^2C_{i,3}} + \frac{1}{h_y^2C_{i,0}})p_i = g_i + \frac{h_xf_{1,3}}{h_x^2C_{i,3}} + \frac{h_yf_{1,0}}{h_y^2C_{i,0}} + \frac{p_{l,3}}{h_x^2C_{i,3}} + \frac{p_{d,0}}{h_y^2C_{i,0}} - \frac{u_{i,1}}{h_x} - \frac{v_{i,2}}{h_y}
-\end{equation*}
-
-5).当$u_{i,3}$ 是边界边上的中点的值时(左边的边界单元)，有
-
-\begin{equation*}
-\frac{\mathcal{W}_{i,1} - u_{i,3}}{h_x} + \frac{\mathcal{W}_{i,2} - \mathcal{W}_{i,0}}{h_y} = g_i
-\end{equation*}
-
-整理后得到:
-
-\begin{equation*}
-\begin{aligned}
-(\frac{1}{h_x^2C_{i,1}} + \frac{1}{h_y^2C_{i,0}} + \frac{1}{h_y^2C_{i,2}})p_i = & g_i - \frac{h_xf_{1,1}}{h_x^2C_{i,1}} - \frac{h_yf_{1,2}}{h_y^2C_{i,2}} + \frac{h_yf_{1,0}}{h_y^2C_{i,0}}\\
-& + \frac{p_{r,1}}{h_x^2C_{i,1}} + \frac{p_{d,0}}{h_y^2C_{i,0}} + \frac{p_{a,2}}{h_y^2C_{i,2}} + \frac{u_{i,3}}{h_x}
-\end{aligned}
-\end{equation*}
-
-6).当$u_{i,1}$ 是边界边上中点的值时(右边的边界单元)，有
-\begin{equation*}
-\frac{ u_{i,1} - \mathcal{W}_{i,3}}{h_x} + \frac{ \mathcal{W}_{i,2} - \mathcal{W}_{i,0}}{h_y} = g_i
-\end{equation*}　
-
-整理后得到:
-
-\begin{equation*}
-\begin{aligned}
-(\frac{1}{h_x^2C_{i,1}} + \frac{1}{h_y^2C_{i,0}} + \frac{1}{h_y^2C_{i,2}})p_i = & g_i + \frac{h_xf_{1,3}}{h_x^2C_{i,3}} - \frac{h_yf_{1,2}}{h_y^2C_{i,2}} + \frac{h_yf_{1,0}}{h_y^2C_{i,0}}\\
-& + \frac{p_{l,3}}{h_x^2C_{i,1}} + \frac{p_{d,0}}{h_y^2C_{i,0}} + \frac{p_{a,2}}{h_y^2C_{i,2}} - \frac{u_{i,1}}{h_x}
-\end{aligned}
-\end{equation*}
-
-7).当$v_{i,0}$ 是边界边上中点的值时(下边的边界单元)，有
-
-\begin{equation*}
-\frac{ \mathcal{W}_{i,1} - \mathcal{W}_{i,3}}{h_x} + \frac{\mathcal{W}_{i,2}- v_{i,0}}{h_y} = g_i
-\end{equation*}　
-
-整理后得到:
-
-\begin{equation*}
-\begin{aligned}
-(\frac{1}{h_x^2C_{i,1}} + \frac{1}{h_x^2C_{i,3}} + \frac{1}{h_y^2C_{i,2}})p_i =& g_i - \frac{h_xf_{1,1}}{h_x^2C_{i,1}} + \frac{h_xf_{1,3}}{h_x^2C_{i,3}} - \frac{h_yf_{1,2}}{h_y^2C_{i,2}}\\
-& + \frac{p_{r,1}}{h_x^2C_{i,1}} + \frac{p_{l,3}}{h_x^2C_{i,3}} + \frac{p_{a,2}}{h_y^2C_{i,2}} + \frac{v_{i,0}}{h_y}
-\end{aligned}
-\end{equation*}
-
-8).当$v_{i,2}$ 是边界边上中点的值时(上边的边界单元)，有
-
-\begin{equation*}
-\frac{ \mathcal{W}_{i,1} - \mathcal{W}_{i,3}}{h_x} + \frac{ v_{i,2} - \mathcal{W}_{i,0}}{h_y} = g_i
-\end{equation*}　
-
-整理后得到:
-
-\begin{equation*}
-\begin{aligned}
-(\frac{1}{h_x^2C_{i,1}} + \frac{1}{h_x^2C_{i,3}} + \frac{1}{h_y^2C_{i,0}})p_i =& g_i - \frac{h_xf_{1,1}}{h_x^2C_{i,1}} + \frac{h_xf_{1,3}}{h_x^2C_{i,3}} + \frac{h_yf_{1,0}}{h_y^2C_{i,0}}\\
-& + \frac{p_{r,1}}{h_x^2C_{i,1}} + \frac{p_{l,3}}{h_x^2C_{i,3}} + \frac{p_{d,0}}{h_y^2C_{i,0}} - \frac{v_{i,2}}{h_y}
-\end{aligned}
-\end{equation*}
-
-9).全部为内部边的中点的值时(内部单元)，有
-
-\begin{equation*}
-\frac{ \mathcal{W}_{i,1} - \mathcal{W}_{i,3}}{h_x} + \frac{ \mathcal{W}_{i,2} - \mathcal{W}_{i,0}}{h_y} = g_i
-\end{equation*}　
-
-整理后得到:
-
-\begin{equation*}
-\begin{aligned}
-(\frac{1}{h_x^2C_{i,1}} + \frac{1}{h_x^2C_{i,3}} + \frac{1}{h_y^2C_{i,0}} + \frac{1}{h_y^2C_{i,2}})p_i =& g_i - \frac{h_xf_{1,1}}{h_x^2C_{i,1}} + \frac{h_xf_{1,3}}{h_x^2C_{i,3}} - \frac{h_yf_{1,2}}{h_y^2C_{i,2}} + \frac{h_yf_{1,0}}{h_y^2C_{i,0}}\\
-& + \frac{p_{r,1}}{h_x^2C_{i,1}} + \frac{p_{l,3}}{h_x^2C_{i,3}} + \frac{p_{d,0}}{h_y^2C_{i,0}} + \frac{p_{a,2}}{h_y^2C_{i,2}}
-\end{aligned}
-\end{equation*}
-
-对于边界单元的 $p$,需要做下特殊处理:\\
-
-1) $u$ 的左边的单元与 $u$ 本身相等时
-
-\begin{equation*}
-\begin{aligned}
-C_{\frac{1}{2}}u_{\frac{1}{2}} + \nabla p & = f_{1,\frac{1}{2}}\\
-\Rightarrow \frac{p_l - p_r}{h_x} & = f_{1,\frac{1}{2}} - C_{\frac{1}{2}}u_{\frac{1}{2}} \\
-\Rightarrow p_r & = - h_xf_{1,\frac{1}{2}} + h_xC_{\frac{1}{2}}u_{\frac{1}{2}} + p_l
-\end{aligned}
-\end{equation*} 
-
-2) $u$ 的右边的单元与 $u$ 本身相等时
-
-\begin{equation*}
-\begin{aligned}
-C_{Nx+\frac{1}{2}}u_{Nx+\frac{1}{2}} + \nabla p & = f_{1,Nx+\frac{1}{2}}\\
-\Rightarrow \frac{p_r - p_l}{h_x} & = f_{1,Nx+\frac{1}{2}} - C_{Nx+\frac{1}{2}}u_{Nx+\frac{1}{2}} \\
-\Rightarrow p_r & =  h_xf_{1,\frac{1}{2}} - h_xC_{\frac{1}{2}}u_{\frac{1}{2}} + p_l
-\end{aligned}
-\end{equation*} 
-
-3) $v$ 的下边的单元与 $v$ 本身相等时
-
-\begin{equation*}
-\begin{aligned}
-C_{\frac{1}{2}}v_{\frac{1}{2}} + \nabla p & = f_{2,\frac{1}{2}}\\
-\Rightarrow \frac{p_l - p_r}{h_y} & = f_{2,\frac{1}{2}} - C_{\frac{1}{2}}v_{\frac{1}{2}} \\
-\Rightarrow p_r & = - h_yf_{2,\frac{1}{2}} + h_yC_{\frac{1}{2}}v_{\frac{1}{2}} + p_l
-\end{aligned}
-\end{equation*} 
-
-4) $v$ 的上边的单元与 $v$ 本身相等时
-
-\begin{equation*}
-\begin{aligned}
-C_{Ny+\frac{1}{2}}v_{Ny+\frac{1}{2}} + \nabla p & = f_{2,Ny+\frac{1}{2}}\\
-\Rightarrow \frac{p_r - p_l}{h_y} & = f_{2,Ny+\frac{1}{2}} - C_{Ny+\frac{1}{2}}v_{Ny+\frac{1}{2}} \\
-\Rightarrow p_r & = h_yf_{2,Ny+\frac{1}{2}} - h_yC_{Ny+\frac{1}{2}}v_{Ny+\frac{1}{2}} + p_l
-\end{aligned}
-\end{equation*}
+\begin{frame}
+\frametitle{Numerical results of Example 1 on Mesh 1}
 
 \begin{figure}[H] 
 \centering 
-\includegraphics[scale=0.6]{mesh.png} 
-\caption{$mesh$} 
-\label{fig:label} 
+\includegraphics[scale=0.46]{figures/nx4ny4_r.eps} 
+\caption{$r_p, r_u(h_x = h_y)$ } 
+\label{fig:rpmesh1p1} 
 \end{figure}
+\end{frame}
 
-再求解$\boldsymbol{u}$:
+\begin{frame}
+\frametitle{Numerical results of Example 1 on Mesh 1}
+\begin{figure}[H] 
+\centering 
+\includegraphics[scale=0.46]{figures/nx4ny4tol_6updp.eps} 
+\caption{Convergence rate of $\boldsymbol{u}, p, \nabla p$} 
+\label{fig:upmesh1p1} 
+\end{figure}
+\end{frame}
+
+\begin{frame}
+\frametitle{Numerical results of Example 1 on Mesh 1}
+\begin{figure}[H] 
+\centering 
+\includegraphics[scale=0.46]{figures/nx4ny4tol_6ucu.eps} 
+\caption{Convergence rate of $\left|\boldsymbol{u}\right|-\left|Q\boldsymbol{u}\right|$,$(\left|\boldsymbol{u}\right|-\left|Q\boldsymbol{u}\right|)\boldsymbol{u}$,$\left|\boldsymbol{u}\right|\boldsymbol{u}-\left|Q\boldsymbol{u}\right|\boldsymbol{u}_h$} 
+\label{fig:normumesh1p1} 
+\end{figure}
+\end{frame}
+
+\begin{frame}
+\frametitle{Numerical results of Example 1 on Mesh 1}
+\begin{tabular}{ |c|c|c|c|c|c| }   
+\hline   
+Partition & d.o.fs & iter & Ass. M. time & Total time & Solver time \\
+\hline
+$32\times 32$ & 3136 & 50 & $0.0088$ s & $1.4$ s & $0.86$ s  \\
+$64\times 64$ & 12416 & 51 & $0.021$ s & $3.6$ s & $3.4$ s  \\
+$128\times 128$ & 49408 & 51 & $0.069$ s & $18.8$ s & $18.6$ s  \\
+$256\times 256$ & 197120 & 51 & $0.29$ s & $125.7$ s & $125.2$ s  \\
+$512\times 512$ & 787456 & 51 & $1.4$ s & $937.1$ s & $934.7$ s  \\
+$1024\times 1024$ & 3147776 & 51 & $6.3$ s & $6864.4$ s & $6854.4$ s  \\
+\hline 
+\end{tabular}
+\smallskip
+\begin{itemize}
+\item $tol = 1e-6$
+\item $\beta = 10$
+\end{itemize}
+\end{frame}
+
+\begin{frame}
+\frametitle{Numerical results of Example 1 on Mesh 1}
+\begin{tabular}{ |c|c|c|c|c|c| }   
+\hline   
+Partition & d.o.fs & iter & Ass. M. time & Total time & Solver time \\
+\hline
+$32\times 32$ & 3136 & 60 & $0.0088$ s & $1.6$ s & $1.0$ s \\
+$64\times 64$ & 12416 & 60 & $0.021$ s & $4.1$ s & $4.0$ s \\
+$128\times 128$ & 49408 & 60 & $0.069$ s & $22.0$ s & $21.8$ s \\
+$256\times 256$ & 197120 & 60 & $0.29$ s & $148.0$ s & $147.4$ s \\
+$512\times 512$ & 787456 & 60 & $1.4$ s & $1101.2$ s & $1098.6$ s \\
+$1024\times 1024$ & 3147776 & 60 & $6.5$ s& $8105.9$ s & $8095.1$ s \\
+\hline 
+\end{tabular}
+\smallskip
+\begin{itemize}
+\item $tol = 1e-7$
+\item $\beta = 10$
+\end{itemize}
+\end{frame}
+\begin{frame}
+\frametitle{Numerical results of Example 1 on Mesh 1}
+\begin{figure}[H] 
+\centering 
+\includegraphics[scale=0.46]{figures/M1P1b10t7rurp.eps} 
+\caption{$r_p, r_u(h_x = h_y)$} 
+\label{fig:rurpmesh1p1} 
+\end{figure}
+\end{frame}
+
+\begin{frame}
+\frametitle{Numerical results of Example 1 on Mesh 1}
+\begin{figure}[H] 
+\centering 
+\includegraphics[scale=0.46]{figures/M1P1b10t7updp.eps} 
+\caption{Convergence rate of $\boldsymbol{u}, p, \nabla p$} 
+\label{fig:upmesh1p1} 
+\end{figure}
+\end{frame}
+
+\begin{frame}
+\frametitle{Numerical results of Example 1 on Mesh 1}
+\begin{figure}[H] 
+\centering 
+\includegraphics[scale=0.46]{figures/M1P1b10t7updp.eps} 
+\caption{Convergence rate of $\left|\boldsymbol{u}\right|-\left|Q\boldsymbol{u}\right|$,$(\left|\boldsymbol{u}\right|-\left|Q\boldsymbol{u}\right|)\boldsymbol{u}$,$\left|\boldsymbol{u}\right|\boldsymbol{u}-\left|Q\boldsymbol{u}\right|\boldsymbol{u}_h$} 
+\label{fig:normumesh1p1} 
+\end{figure}
+\end{frame}
+
+
+\begin{frame}
+\frametitle{Uniform Mesh}
+\begin{itemize}
+\item Mesh 2. $n_x = 4, n_y = 10, h_x = 0.25, h_y = 0.1$. 
+\end{itemize}
+The mesh and d.o.fs are shown as below:
+\begin{figure}[H] 
+\centering 
+\includegraphics[scale=0.4]{figures/nx4ny10.eps} 
+\caption{Mesh 2} 
+\label{fig:mesh2} 
+\end{figure}
+\end{frame}
+
+\begin{frame}
+\frametitle{Numerical results of Example 1 on Mesh 2}
+\begin{tabular}{ |c|c|c|c|c|c| }   
+\hline   
+Partition & d.o.fs & iter & Ass.M.time & Solver time & Total time \\
+\hline
+$32\times 40$ & 3912 & 57 & $0.0098$ s & $1.7$ s & $1.2$ s \\
+$64\times 80$ & 15504 & 57 & $0.049$ s & $5.7$ s & $6.0$ s \\
+$128\times 160$ & 61728 & 57 & $0.090$ s & $31.3$ s & $31.1$ s \\
+$256\times 320$ & 246336 & 57 & $0.40$ s & $228.8$ s & $228.1$ s \\
+$512\times 640$ & 984192 & 57 & $1.9$ s & $14717.8$ s & $1978.1$ s \\
+$1024\times 1280$ & 3934464 & 57 & $8.2$ s & $4201.1$ s & $14704.0$ s \\
+\hline 
+\end{tabular}
+\smallskip
+\begin{itemize}
+\item $tol = 1e-7$
+\item $\beta = 10$
+\end{itemize}
+\end{frame}
+
+\begin{frame}
+\frametitle{Numerical results of Example 1 on Mesh 2}
+\begin{tabular}{ |c|c|c|c|c| }   
+\hline   
+Partition & d.o.fs & iter & $e_{\boldsymbol{u}}$ & $e_p$ \\
+\hline
+$4\times4$ & 56 & 25 & $5.07916844531e-07$ & $2.22171185291e-07$  \\
+$8\times8$ & 208 & 28 &$5.20044536563e-07$ & $1.24269962272e-07$  \\
+$16\times16$ & 800 & 29 &$6.97186788249e-07$ & $8.43631879731e-08$  \\
+$32\times32$ & 3136 & 29 &$7.80848723115e-07$ & $8.37442292762e-08$  \\
+\hline 
+\end{tabular}
+\end{frame}
+
+\begin{frame}
+\frametitle{Numerical results of Example 1 on Mesh 2}
+
+\begin{tabular}{ |c|c|c|c|c| }   
+\hline   
+Partition & d.o.fs & iter & $r_{\boldsymbol{u}}$ & $r_p$ \\
+\hline
+$4\times4$ & 56 & 25 & $4.05498678019e-07$ & $7.38286095726e-05$ \\
+$8\times8$ & 208 & 28 & $6.37410518738e-07$ & $8.79457170823e-06$ \\
+$16\times16$ & 800 & 29 & $7.22297060021e-07$ & $1.08661282567e-06$ \\
+$32\times32$ & 3136 & 29 & $7.76627221558e-07$ & $1.35435326822e-07$ \\
+\hline 
+\end{tabular}
+\end{frame}
+
+
+\begin{frame}
+\frametitle{Numerical results of Example 1 on Mesh 2}
+\begin{figure}[H] 
+\centering 
+\includegraphics[scale=0.46]{figures/nx4ny10_r.eps} 
+\caption{$r_p, r_u(h_x \neq h_y)$} 
+\label{fig:rpmesh2p1} 
+\end{figure}
+\end{frame}
+
+\begin{frame}
+\frametitle{Numerical results of Example 1 on Mesh 2}
+\begin{figure}[H] 
+\centering 
+\includegraphics[scale=0.46]{figures/nx4ny10tol_6updp.eps} 
+\caption{Convergence rate of $\boldsymbol{u}, p, \nabla p$}
+\label{fig:upmesh2p1} 
+\end{figure}
+\end{frame}
+
+\begin{frame}
+\frametitle{Numerical results of Example 1 on Mesh 2}
+\begin{figure}[H] 
+\centering 
+\includegraphics[scale=0.46]{figures/nx4ny10tol_6ucu.eps}
+\caption{Convergence rate of $\left|\boldsymbol{u}\right|-\left|Q\boldsymbol{u}\right|$,$(\left|\boldsymbol{u}\right|-\left|Q\boldsymbol{u}\right|)\boldsymbol{u}$,$\left|\boldsymbol{u}\right|\boldsymbol{u}-\left|Q\boldsymbol{u}\right|\boldsymbol{u}_h$}
+\label{fig:normumesh2p1} 
+\end{figure}
+\end{frame}
+
+\begin{frame}
+\frametitle{Nonuniform Mesh}
+\begin{itemize}
+\item Mesh 3. $n_x = n_y = 4$
+\end{itemize}
+The mesh and d.o.fs are shown as below:
+\begin{figure}[H] 
+\centering 
+\includegraphics[scale=0.4]{figures/nx4_ny4.eps} 
+\caption{Mesh 3} 
+\label{fig:mesh3} 
+\end{figure}
+\end{frame}
+
+\begin{frame}
+\frametitle{Numerical results of Example 1 on Mesh 3}
+\begin{tabular}{ |c|c|c|c|c| }   
+\hline   
+Partition & d.o.fs & iter & $e_{\boldsymbol{u}}$ & $e_p$ \\
+\hline
+$4\times5$ & 69 & 25 & $4.97204160304e-07$ & $1.88309687456e-07$  \\
+$8\times10$ & 258 & 28 &$8.36397948431e-07$ & $1.37340010682e-07$  \\
+$16\times20$ & 996 & 29 &$7.58372942443e-07$ & $8.73759490414e-08$  \\
+$32\times40$ & 3912 & 29 &$7.96874884521e-07$ & $8.4711424885e-08$  \\
+\hline 
+\end{tabular}
+\end{frame}
+
+\begin{frame}
+\frametitle{Numerical results of Example 1 on Mesh 3}
+\begin{tabular}{ |c|c|c|c|c| }   
+\hline   
+Partition & d.o.fs & iter & $r_{\boldsymbol{u}}$ & $r_p$ \\
+\hline
+$4\times5$ & 69 & 25 & $4.25520726494e-07$ & $1.48321353583e-06$ \\
+$8\times10$ & 258 & 28 & $9.0008826846e-07$ & $2.19374201625e-07$ \\
+$16\times20$ & 996 & 29 & $7.67166893353e-07$ & $2.83996584464e-08$ \\
+$32\times40$ & 3912 & 29 & $7.8898117631e-07$ & $3.57991890078e-09$ \\
+\hline 
+\end{tabular}
+\end{frame}
+
+
+\begin{frame}
+\frametitle{Numerical results of Example 1 on Mesh 3}
+\begin{figure}[H] 
+\centering 
+\includegraphics[scale=0.4]{figures/hx4hy4_r.eps} 
+\caption{$r_p, r_u(Mesh 3)$} 
+\label{fig:rpmesh3p1} 
+\end{figure}
+\end{frame}
+
+\begin{frame}
+\frametitle{Numerical results of Example 1 on Mesh 3}
+\begin{figure}[H] 
+\centering 
+\includegraphics[scale=0.46]{figures/hx4hy4tol_6updp.eps} 
+\caption{Convergence rate of $\boldsymbol{u}, p, \nabla p$}
+\label{fig:upmesh3p1} 
+\end{figure}
+\end{frame}
+
+\begin{frame}
+\frametitle{Numerical results of Example 1 on Mesh 3}
+\begin{figure}[H] 
+\centering 
+\includegraphics[scale=0.46]{figures/hx4hy4tol_6ucu.eps} 
+\caption{Convergence rate of $\left|\boldsymbol{u}\right|-\left|Q\boldsymbol{u}\right|$,$(\left|\boldsymbol{u}\right|-\left|Q\boldsymbol{u}\right|)\boldsymbol{u}$,$\left|\boldsymbol{u}\right|\boldsymbol{u}-\left|Q\boldsymbol{u}\right|\boldsymbol{u}_h$}
+\label{fig:normumesh3p1} 
+\end{figure}
+\end{frame}
+
+\begin{frame}
+\frametitle{Numerical results of Example 1 on Mesh 3}
+\begin{tabular}{ |c|c|c|c|c|c| }   
+\hline   
+Partition & d.o.fs & iter & Ass.M.time & Solver time & Total time \\
+\hline
+$32\times 32$ & 3136 & 60 & $0.0087$ s & $1.6$ s & $1.0$ s \\
+$64\times 64$ & 12416 & 60 & $0.020$ s & $4.2$ s & $4.0$ s \\
+$128\times 128$ & 49408 & 60 & $0.069$ s & $22.5$ s & $22.3$ s \\
+$256\times 256$ & 197120 & 60 & $0.29$ s & $151.6$ s & $151.1$ s \\
+$512\times 512$ & 787456 & 60 & $1.4$ s & $1159.1$ s & $1156.7$ s \\
+$1024\times 1024$ & 3147776 & 60 & $6.3$ s & $8799.5$ s & $8789.1$ s \\
+\hline 
+\end{tabular}
+\smallskip
+\begin{itemize}
+\item $tol = 1e-7$
+\item $\beta = 10$
+\end{itemize}
+\end{frame}
+
+
+
+\begin{frame}
+\frametitle{Nonuniform Mesh}
+\begin{itemize}
+\item Mesh 4. $n_x = 4, n_y = 5$
+\end{itemize}
+The mesh and d.o.fs are shown as below:
+\begin{figure}[H] 
+\centering 
+\includegraphics[scale=0.46]{figures/nx_4ny_5.eps} 
+\caption{Mesh 4} 
+\label{fig:mesh4} 
+\end{figure}
+\end{frame}
+
+\begin{frame}
+\frametitle{Numerical results of Example 1 on Mesh 4}
+\begin{tabular}{ |c|c|c|c|c| }   
+\hline   
+Partition & d.o.fs & iter & $e_{\boldsymbol{u}}$ & $e_p$ \\
+\hline
+$4\times5$ & 69 & 25 & $4.97204160304e-07$ & $1.88309687456e-07$  \\
+$8\times10$ & 258 & 28 &$8.36397948431e-07$ & $1.37340010682e-07$  \\
+$16\times20$ & 996 & 29 &$7.58372942443e-07$ & $8.73759490414e-08$  \\
+$32\times40$ & 3912 & 29 &$7.96874884521e-07$ & $8.4711424885e-08$  \\
+\hline 
+\end{tabular}
+\end{frame}
+
+\begin{frame}
+\frametitle{Numerical results of Example 1 on Mesh 4}
+\begin{tabular}{ |c|c|c|c|c| }   
+\hline   
+Partition & d.o.fs & iter & $r_{\boldsymbol{u}}$ & $r_p$ \\
+\hline
+$4\times5$ & 69 & 25 & $4.25520726494e-07$ & $1.48321353583e-06$ \\
+$8\times10$ & 258 & 28 & $9.0008826846e-07$ & $2.19374201625e-07$ \\
+$16\times20$ & 996 & 29 & $7.67166893353e-07$ & $2.83996584464e-08$ \\
+$32\times40$ & 3912 & 29 & $7.8898117631e-07$ & $3.57991890078e-09$ \\
+\hline 
+\end{tabular}
+\end{frame}
+
+\begin{frame}
+\frametitle{Numerical results of Example 1 on Mesh 4}
+\begin{figure}[H] 
+\centering 
+\includegraphics[scale=0.4]{figures/hx4hy5_r.eps} 
+\caption{$r_p, r_u(Mesh 4)$}
+\label{fig:rpmesh4p1} 
+\end{figure}
+\end{frame}
+
+\begin{frame}
+\frametitle{Numerical results of Example 1 on Mesh 4}
+\begin{figure}[H] 
+\centering 
+\includegraphics[scale=0.46]{figures/hx4hy5tol_6updp.eps} 
+\caption{Convergence rate of $\boldsymbol{u}, p, \nabla p$}
+\label{fig:upmesh4p1} 
+\end{figure}
+\end{frame}
+
+\begin{frame}
+\frametitle{Numerical results of Example 1 on Mesh 4}
+\begin{figure}[H] 
+\centering 
+\includegraphics[scale=0.46]{figures/hx4hy5tol_6ucu.eps} 
+\caption{Convergence rate of $\left|\boldsymbol{u}\right|-\left|Q\boldsymbol{u}\right|$,$(\left|\boldsymbol{u}\right|-\left|Q\boldsymbol{u}\right|)\boldsymbol{u}$,$\left|\boldsymbol{u}\right|\boldsymbol{u}-\left|Q\boldsymbol{u}\right|\boldsymbol{u}_h$}
+\label{fig:normumesh4p1} 
+\end{figure}
+\end{frame}
+
+%modify
+\begin{frame}
+\frametitle{Example 2}
+\begin{itemize}
+\item 
 \begin{equation*}
-\begin{aligned}
-u_m & = (f_{1,m} - \frac{p_{r} - p_{l}}{h_x})/C_m \\
-v_m & = (f_{2,m} - \frac{p_{l} - p_{r}}{h_y})/C_m
-\end{aligned}
+\boldsymbol{u} = \begin{pmatrix}
+-yx(1-x) \\
+xy(1-y)
+\end{pmatrix}
 \end{equation*}
-\subsubsection{求解 $p$ 的隐格式}
-
-与上面一部分一样，我们先求解 $p$, 再求解 $\boldsymbol{u}$.\\
-我们考虑 $C$ 的求解方法，在边界的时候，记$f = f_b$, 边界处的 $u,v$ 统一记为 $U$,则有
-
 \begin{equation*}
-f_b = CU
+p = e^{x(1-x)y(1-y)} -1
+\end{equation*}
+\begin{equation*}
+\begin{split}
+\boldsymbol{f} = \begin{pmatrix}
+-(\mu/k + \beta\rho\sqrt{x^2y^2((1-x)^2+(1-y)^2)}xy(1-x) \\
+ + (1-2x)y(1-y)e^{x(1-x)y(1-y)} \\
+ \\
+(\mu/k + \beta\rho\sqrt{x^2y^2((1-x)^2+(1-y)^2)}xy(1-y) \\
+ + x(1-x)(1-2y)e^{x(1-x)y(1-y)}
+\end{pmatrix}
+\end{split}
 \end{equation*}
 
-要求解 $p$,我们把 $\eqref{eq:up}$ 和 $\eqref{eq:vp}$ 代入到 $\eqref{eq:uv}$即可。但是，我们现在需要分情况讨论: \\
-
-1).当$u_{i,3}$ 与 $v_{i,0}$ 是边界边上中点的值时(左下角的边界函数)，有
-
 \begin{equation*}
-\frac{\mathcal{W}_{i,1} - u_{i,3}}{h_x} + \frac{\mathcal{W}_{i,2} - v_{i,0}}{h_y} = g_i
-\end{equation*}　
-
-整理后得到:
-
-\begin{equation*}
-(\frac{1}{h_x^2C_{i,1}} + \frac{1}{h_y^2C_{i,2}})p_i - \frac{p_{r,1}}{h_x^2C_{i,1}} - \frac{p_{a,2}}{h_y^2C_{i,2}} = g_i - \frac{h_xf_{1,1}}{h_x^2C_{i,1}} - \frac{h_yf_{1,2}}{h_y^2C_{i,2}} + \frac{u_{i,3}}{h_x} + \frac{v_{i,0}}{h_y}
+g = x-y
 \end{equation*}
 
-2).当$u_{e_{i,3}}$ 与 $v_{e_{i,2}}$ 是边界边上中点的值时(左上角的边界单元)，有
+\end{itemize}
 
+\end{frame}
+
+\begin{frame}
+\frametitle{Numerical results of Example 2 on Mesh 1}
+\begin{tabular}{ c|c|c|c|c }   
+\hline   
+Partition & d.o.fs & iter & $e_{\boldsymbol{u}}$ & $e_p$ \\
+\hline
+$4\times4$ & 56 & 10 & $6.67551103856e-07$ & $1.5332121901e-07$  \\
+$8\times8$ & 208 & 11 &$4.88120559817e-07$ & $6.27543845963e-08$  \\
+$16\times16$ & 800 & 11 &$6.63222199452e-07$ & $7.00781929052e-08$  \\
+$32\times32$ & 3136 & 11 &$7.23684926515e-07$ & $7.19763485329e-08$  \\
+\hline 
+\end{tabular}
+\end{frame}
+
+\begin{frame}
+\frametitle{Numerical results of Example 2 on Mesh 1}
+\begin{tabular}{ |c|c|c|c|c| }   
+\hline   
+Partition & d.o.fs & iter & $r_{\boldsymbol{u}}$ & $r_p$ \\
+\hline
+$4\times4$ & 56 & 10 & $1.24986912e-06$ & $2.02444533679e-16$ \\
+$8\times8$ & 208 & 11 & $1.03971599011e-06$ & $1.12742054217e-15$ \\
+$16\times16$ & 800 & 11 & $6.28461992506e-07$ & $2.79881371122e-15$ \\
+$32\times32$ & 3136 & 11 & $1.47332094357e-06$ & $1.3836755768e-14$ \\
+\hline 
+\end{tabular}
+\end{frame}
+
+\begin{frame}
+\frametitle{Numerical results of Example 2 on Mesh 1}
+\begin{figure}[H] 
+\centering 
+\includegraphics[scale=0.46]{figures/nx4ny4_r1.eps} 
+\caption{$r_p, r_u(Mesh 1)$}
+\label{fig:rpmesh1p2}
+\end{figure}
+\end{frame}
+
+\begin{frame}
+\frametitle{Numerical results of Example 2 on Mesh 1}
+\begin{figure}[H] 
+\centering 
+\includegraphics[scale=0.46]{figures/nx4ny4tol_6updp1.eps} 
+\caption{Convergence rate of $\boldsymbol{u}, p, \nabla p$}
+\label{fig:upmesh1p2} 
+\end{figure}
+\end{frame}
+
+\begin{frame}
+\frametitle{Numerical results of Example 2 on Mesh 1}
+\begin{figure}[H] 
+\centering 
+\includegraphics[scale=0.46]{figures/nx4ny4tol_6ucu1.eps} 
+\caption{Convergence rate of $\left|\boldsymbol{u}\right|-\left|Q\boldsymbol{u}\right|$,$(\left|\boldsymbol{u}\right|-\left|Q\boldsymbol{u}\right|)\boldsymbol{u}$,$\left|\boldsymbol{u}\right|\boldsymbol{u}-\left|Q\boldsymbol{u}\right|\boldsymbol{u}_h$}
+\label{fig:normumesh1p2} 
+\end{figure}
+\end{frame}
+
+\begin{frame}
+\frametitle{Numerical results of Example 2 on Mesh 1}
+\begin{tabular}{ |c|c|c|c|c|c| }   
+\hline   
+Partition & d.o.fs & iter & Ass.M.time & Solver time & Total time \\
+\hline
+$32\times 32$ & 3136 & 20 & $0.0086$ s & $0.86$ s & $0.34$ s \\
+$64\times 64$ & 12416 & 20 & $0.020$ s & $1.43$ s & $1.32$ s \\
+$128\times 128$ & 49408 & 20 & $0.066$ s & $7.4$ s & $7.2$ s \\
+$256\times 256$ & 197120 & 20 & $0.28$ s & $49.4$ s & $48.9$ s \\
+$512\times 512$ & 787456 & 20 & $1.4$ s & $366.1$ s & $363.9$ s \\
+$1024\times 1024$ & 3147776 & 20 & $6.2$ s & $2688.0$ s & $2677.9$ s \\
+\hline 
+\end{tabular}
+\smallskip
+\begin{itemize}
+\item $tol = 1e-7$
+\item $\beta = 10$
+\end{itemize}
+\end{frame}
+
+\begin{frame}
+\frametitle{Numerical results of Example 2 on Mesh 1}
+\begin{figure}[H] 
+\centering 
+\includegraphics[scale=0.46]{figures/M1P2b10t7rurp.eps} 
+\caption{$r_p, r_u(Mesh 1)$}
+\label{fig:rpmesh1p2}
+\end{figure}
+\end{frame}
+
+\begin{frame}
+\frametitle{Numerical results of Example 2 on Mesh 1}
+\begin{figure}[H] 
+\centering 
+\includegraphics[scale=0.46]{figures/M1P2b10t7updp.eps} 
+\caption{Convergence rate of $\boldsymbol{u}, p, \nabla p$}
+\label{fig:upmesh1p2} 
+\end{figure}
+\end{frame}
+
+\begin{frame}
+\frametitle{Numerical results of Example 2 on Mesh 1}
+\begin{figure}[H] 
+\centering 
+\includegraphics[scale=0.46]{figures/M1P2b10t7ucu.eps} 
+\caption{Convergence rate of $\left|\boldsymbol{u}\right|-\left|Q\boldsymbol{u}\right|$,$(\left|\boldsymbol{u}\right|-\left|Q\boldsymbol{u}\right|)\boldsymbol{u}$,$\left|\boldsymbol{u}\right|\boldsymbol{u}-\left|Q\boldsymbol{u}\right|\boldsymbol{u}_h$}
+\label{fig:normumesh1p2} 
+\end{figure}
+\end{frame}
+
+
+\begin{frame}
+\frametitle{Numerical results of Example 2 on Mesh 2}
+\begin{tabular}{ |c|c|c|c|c|c| }   
+\hline   
+Partition & d.o.fs & iter & Ass.M.time & Solver time & Total time \\
+\hline
+$32\times 40$ & 3912 & 16 & $0.0097$ s & $0.85$ s & $0.35$ s \\
+$64\times 80$ & 15504 & 16 & $0.049$ s & $1.7$ s & $1.6$ s \\
+$128\times 160$ & 61728 & 16 & $0.087$ s & $9.0$ s & $9.8$ s \\
+$256\times 320$ & 246336 & 16 & $0.38$ s & $64.7$ s & $64.1$ s \\
+$512\times 640$ & 984192 & 16 & $1.8$ s & $565.6$ s & $562.5$ s \\
+$1024\times 1280$ & 3934464 & 16 & $8.1$ s & $4201.1$ s & $4189.4$ s \\
+\hline 
+\end{tabular}
+\smallskip
+\begin{itemize}
+\item $tol = 1e-7$
+\item $\beta = 10$
+\end{itemize}
+\end{frame}
+
+\begin{frame}
+\frametitle{Numerical results of Example 2 on Mesh 2}
+\begin{tabular}{ |c|c|c|c|c| }   
+\hline   
+Partition & d.o.fs & iter & $e_{\boldsymbol{u}}$ & $e_p$ \\
+\hline
+$4\times10$ & 256 & 11 & $5.25489596541e-07$ & $6.46699509792e-08$  \\
+$8\times20$ & 996 & 11 &$6.77175345753e-07$ & $7.05473773794e-08$  \\
+$16\times40$ & 3912 & 11 &$7.27677469805e-07$ & $7.20919219707e-08$  \\
+$32\times80$ & 15505 & 11 &$7.41538667364e-07$ & $7.24828760804e-08$  \\
+\hline 
+\end{tabular}
+\end{frame}
+
+\begin{frame}
+\frametitle{Numerical results of Example 2 on Mesh 2}
+\begin{tabular}{ |c|c|c|c|c| }   
+\hline   
+Partition & d.o.fs & iter & $r_{\boldsymbol{u}}$ & $r_p$ \\
+\hline
+$4\times10$ & 258 & 11 & $1.13158861656e-06$ & $2.17422227856e-15$ \\
+$8\times20$ & 996 & 11 & $1.5092259622e-06$ & $4.45918027361e-15$ \\
+$16\times40$ & 3912 & 11 & $1.63839802082e-06$ & $9.61170366644e-15$ \\
+$32\times80$ & 15504 & 11 & $1.67280373852e-06$ & $9.85442956926e-14$ \\
+\hline 
+\end{tabular}
+\end{frame}
+
+\begin{frame}
+\frametitle{Numerical results of Example 2 on Mesh 2}
+\begin{figure}[H] 
+\centering 
+\includegraphics[scale=0.46]{figures/nx4ny10_r1.eps} 
+\caption{$r_p, r_u(Mesh 2)$}
+\label{fig:rpmesh2p2}
+\end{figure}
+\end{frame}
+
+\begin{frame}
+\frametitle{Numerical results of Example 2 on Mesh 2}
+\begin{figure}[H] 
+\centering 
+\includegraphics[scale=0.46]{figures/nx4ny10tol_6updp1.eps} 
+\caption{Convergence rate of $\boldsymbol{u}, p, \nabla p$}
+\label{fig:upmesh2p2} 
+\end{figure}
+\end{frame}
+
+\begin{frame}
+\frametitle{Numerical results of Example 2 on Mesh 2}
+\begin{figure}[H] 
+\centering 
+\includegraphics[scale=0.46]{figures/nx4ny10tol_6ucu1.eps} 
+\caption{Convergence rate of $\left|\boldsymbol{u}\right|-\left|Q\boldsymbol{u}\right|$,$(\left|\boldsymbol{u}\right|-\left|Q\boldsymbol{u}\right|)\boldsymbol{u}$,$\left|\boldsymbol{u}\right|\boldsymbol{u}-\left|Q\boldsymbol{u}\right|\boldsymbol{u}_h$}
+\label{fig:normumesh2p2} 
+\end{figure}
+\end{frame}
+
+\begin{frame}
+\frametitle{Numerical results of Example 2 on Mesh 3}
+\begin{tabular}{ |c|c|c|c|c| }   
+\hline   
+Partition & d.o.fs & iter & $e_{\boldsymbol{u}}$ & $e_p$ \\
+\hline
+$4\times4$ & 56 & 10 & $4.40097086749e-07$ & $1.26160255168e-07$  \\
+$8\times8$ & 208 & 11 &$4.0826840149e-07$ & $5.82568748479e-08$  \\
+$16\times16$ & 800 & 11 &$6.28590318764e-07$ & $6.87785964255e-08$  \\
+$32\times32$ & 3136 & 11 &$7.13074894994e-07$ & $7.16365352151e-08$  \\
+\hline  
+\end{tabular}
+\end{frame}
+
+\begin{frame}
+\frametitle{Numerical results of Example 2 on Mesh 3}
+\begin{tabular}{ |c|c|c|c|c| }   
+\hline   
+Partition & d.o.fs & iter & $r_{\boldsymbol{u}}$ & $r_p$ \\
+\hline
+$4\times4$ & 56 & 10 & $7.51619589873e-07$ & $9.52600125491e-16$ \\
+$8\times8$ & 208 & 11 & $8.10505035269e-07$ & $1.35702231532e-15$ \\
+$16\times16$ & 800 & 11 & $1.3240285826e-06$ & $4.49575272877e-15$ \\
+$32\times32$ & 3136 & 11 & $1.53043922801e-06$ & $1.0031717946e-14$ \\
+\hline  
+\end{tabular}
+\end{frame}
+
+\begin{frame}
+\frametitle{Numerical results of Example 2 on Mesh 3}
+\begin{figure}[H] 
+\centering 
+\includegraphics[scale=0.46]{figures/hx4hy4_r1.eps} 
+\caption{$r_p, r_u(Mesh 3)$}
+\label{fig:rpmesh3p2}
+\end{figure}
+\end{frame}
+
+\begin{frame}
+\frametitle{Numerical results of Example 2 on Mesh 3}
+\begin{figure}[H] 
+\centering 
+\includegraphics[scale=0.46]{figures/hx4hy4tol_6updp1.eps} 
+\caption{Convergence rate of $\boldsymbol{u}, p, \nabla p$}
+\label{fig:upmesh3p2} 
+\end{figure}
+\end{frame}
+
+\begin{frame}
+\frametitle{Numerical results of Example 2 on Mesh 3}
+\begin{figure}[H] 
+\centering 
+\includegraphics[scale=0.46]{figures/hx4hy4tol_6ucu1.eps} 
+\caption{Convergence rate of $\left|\boldsymbol{u}\right|-\left|Q\boldsymbol{u}\right|$,$(\left|\boldsymbol{u}\right|-\left|Q\boldsymbol{u}\right|)\boldsymbol{u}$,$\left|\boldsymbol{u}\right|\boldsymbol{u}-\left|Q\boldsymbol{u}\right|\boldsymbol{u}_h$}
+\label{fig:normumesh3p2} 
+\end{figure}
+\end{frame}
+
+\begin{frame}
+\frametitle{Numerical results of Example 2 on Mesh 4}
+\begin{tabular}{ |c|c|c|c|c| }   
+\hline   
+Partition & d.o.fs & iter & $e_{\boldsymbol{u}}$ & $e_p$ \\
+\hline
+$4\times5$ & 69 & 10 & $8.16134809749e-07$ & $1.81741193479e-07$  \\
+$8\times10$ & 258 & 11 &$4.92860501072e-07$ & $6.37707916666e-08$  \\
+$16\times20$ & 996 & 11 &$6.6105513653e-07$ & $6.99185140736e-08$  \\
+$32\times40$ & 3912 & 11 &$7.22628968302e-07$ & $7.18936048535e-08$  \\
+\hline  
+\end{tabular}
+\end{frame}
+
+\begin{frame}
+\frametitle{Numerical results of Example 2 on Mesh 4}
+\begin{tabular}{ |c|c|c|c|c| }   
+\hline   
+Partition & d.o.fs & iter & $r_{\boldsymbol{u}}$ & $r_p$ \\
+\hline
+$4\times5$ & 69 & 10 & $1.83235616129e-06$ & $5.49762383623e-16$ \\
+$8\times10$ & 258 & 11 & $1.08816710285e-06$ & $1.45818472268e-15$ \\
+$16\times20$ & 996 & 11 & $1.45703566818e-06$ & $4.65730678358e-15$ \\
+$32\times40$ & 3912 & 11 & $1.58968801509e-06$ & $1.08235599645e-14$ \\
+\hline 
+\end{tabular}
+\end{frame}
+
+\begin{frame}
+\frametitle{Numerical results of Example 2 on Mesh 4}
+\begin{figure}[H] 
+\centering 
+\includegraphics[scale=0.46]{figures/hx4hy5_r1.eps} 
+\caption{$r_p, r_u(Mesh 4)$}
+\label{fig:rpmesh4p2}
+\end{figure}
+\end{frame}
+
+\begin{frame}
+\frametitle{Numerical results of Example 2 on Mesh 4}
+\begin{figure}[H] 
+\centering 
+\includegraphics[scale=0.46]{figures/hx4hy5tol_6updp1.eps} 
+\caption{Convergence rate of $\boldsymbol{u}, p, \nabla p$}
+\label{fig:upmesh4p2} 
+\end{figure}
+\end{frame}
+
+\begin{frame}
+\frametitle{Numerical results of Example 2 on Mesh 4}
+\begin{figure}[H] 
+\centering 
+\includegraphics[scale=0.46]{figures/hx4hy5tol_6ucu1.eps} 
+\caption{Convergence rate of $\left|\boldsymbol{u}\right|-\left|Q\boldsymbol{u}\right|$,$(\left|\boldsymbol{u}\right|-\left|Q\boldsymbol{u}\right|)\boldsymbol{u}$,$\left|\boldsymbol{u}\right|\boldsymbol{u}-\left|Q\boldsymbol{u}\right|\boldsymbol{u}_h$}
+\label{fig:normumesh4p2} 
+\end{figure}
+\end{frame}
+
+\begin{frame}
+\frametitle{Example 3}
+\begin{itemize}
+\item \begin{equation*}
+\boldsymbol{u} = \begin{pmatrix}
+sin(x)cos(y) \\
+-cos(x)sin(y)
+\end{pmatrix}
+\end{equation*}
 \begin{equation*}
-\frac{\mathcal{W}_{e_{i,1}} - u_{e_{i,3}}}{h_x} + \frac{ v_{e_{i,2}} - \mathcal{W}_{e_{i,0}}}{h_y} = g_i
-\end{equation*}　
-
-整理后得到:
-
+p = sin(\pi x)sin(\pi y)
+\end{equation*}
 \begin{equation*}
-(\frac{1}{h_x^2C_{i,1}} + \frac{1}{h_y^2C_{i,0}})p_i - \frac{p_{r,1}}{h_x^2C_{i,1}} - \frac{p_{d,0}}{h_y^2C_{i,0}} = g_i - \frac{h_xf_{1,1}}{h_x^2C_{i,1}} + \frac{h_yf_{1,0}}{h_y^2C_{i,0}} + \frac{u_{i,3}}{h_x} - \frac{v_{i,2}}{h_y}
+\begin{split}
+\boldsymbol{f} = \begin{pmatrix}
+(\mu/k + \rho\beta\sqrt{sin^2(x)cos^2(y) + cos^2(x)sin^2(y)}sin(x)cos(y) \\
+ + \pi cos(\pi x)sin(\pi y) \\
+ \\
+-(\mu/k + \rho\beta\sqrt{sin^2(x)cos^2(y) + cos^2(x)sin^2(y)}cos(x)sin(y) \\
+ + \pi sin(\pi x)cos(\pi y) \\
+\end{pmatrix}
+\end{split}
 \end{equation*}
 
-3).当$u_{i,1}$ 与 $v_{i,0}$ 是边界边上中点的值时(右下角的边界单元)，有
-
 \begin{equation*}
-\frac{ u_{i,1} - \mathcal{W}_{i,3}}{h_x} + \frac{\mathcal{W}_{i,2} - v_{i,0}}{h_y} = g_i
-\end{equation*}　
-
-整理后得到:
-
-\begin{equation*}
-(\frac{1}{h_x^2C_{i,3}} + \frac{1}{h_y^2C_{i,2}})p_i - \frac{p_{l,3}}{h_x^2C_{i,3}} - \frac{p_{a,2}}{h_y^2C_{i,2}} = g_i + \frac{h_xf_{1,3}}{h_x^2C_{i,3}} - \frac{h_yf_{1,2}}{h_y^2C_{i,2}} - \frac{u_{i,1}}{h_x} + \frac{v_{i,0}}{h_y}
+g = 0
 \end{equation*}
 
-4).当$u_{i,1}$ 与 $v_{i,2}$ 是边界边上中点的值时(右上角的边界单元)，有
+\end{itemize}
 
+\end{frame}
+
+\begin{frame}
+\frametitle{Numerical results of Example 3 on Mesh 1}
+\begin{tabular}{ |c|c|c|c|c| }   
+\hline   
+Partition & d.o.fs & iter & $e_{\boldsymbol{u}}$ & $e_p$ \\
+\hline
+$4\times4$ & 56 & 16 & $5.09392809957e-07$ & $1.59203792807e-07$  \\
+$8\times8$ & 208 & 18 & $1.08816710285e-06$ & $1.45818472268e-15$  \\
+$16\times16$ & 800 & 19 & $7.17697893727e-07$ & $1.2941423188e-07$  \\
+$32\times32$ & 3136 & 20 & $4.70454759216e-07$ & $8.05742997361e-08$  \\
+\hline  
+\end{tabular}
+\end{frame}
+
+\begin{frame}
+\frametitle{Numerical results of Example 3 on Mesh 1}
+\begin{tabular}{ |c|c|c|c|c| }   
+\hline   
+Partition & d.o.fs & iter & $r_{\boldsymbol{u}}$ & $r_p$ \\
+\hline
+$4\times4$ & 56 & 16 & $2.6213339098e-07$ & $1.40501892976e-16$ \\
+$8\times8$ & 208 & 18 & $4.78418711072e-07$ & $6.32177600879e-16$ \\
+$16\times16$ & 800 & 19 & $5.02629468049e-07$ & $3.06376427451e-16$ \\
+$32\times32$ & 3136 & 20 & $3.44991951496e-07$ & $4.05596859228e-16$ \\
+\hline
+\end{tabular}
+\end{frame}
+
+\begin{frame}
+\frametitle{Numerical results of Example 3 on Mesh 1}
+\begin{figure}[H] 
+\centering 
+\includegraphics[scale=0.46]{figures/nx4ny4_r2.eps} 
+\caption{$r_p, r_u(Mesh 1)$}
+\label{fig:rpmesh1p3}
+\end{figure}
+\end{frame}
+
+\begin{frame}
+\frametitle{Numerical results of Example 3 on Mesh 1}
+\begin{figure}[H] 
+\centering 
+\includegraphics[scale=0.46]{figures/nx4ny4tol_6updp2.eps} 
+\caption{Convergence rate of $\boldsymbol{u}, p, \nabla p$}
+\label{fig:upmesh1p3} 
+\end{figure}
+\end{frame}
+
+\begin{frame}
+\frametitle{Numerical results of Example 3 on Mesh 1}
+\begin{figure}[H] 
+\centering 
+\includegraphics[scale=0.46]{figures/nx4ny4tol_6ucu2.eps} 
+\caption{Convergence rate of $\left|\boldsymbol{u}\right|-\left|Q\boldsymbol{u}\right|$,$(\left|\boldsymbol{u}\right|-\left|Q\boldsymbol{u}\right|)\boldsymbol{u}$,$\left|\boldsymbol{u}\right|\boldsymbol{u}-\left|Q\boldsymbol{u}\right|\boldsymbol{u}_h$}
+\label{fig:normumesh1p3} 
+\end{figure}
+\end{frame}
+
+\begin{frame}
+\frametitle{Numerical results of Example 3 on Mesh 1}
+\begin{tabular}{ |c|c|c|c|c|c| }   
+\hline   
+Partition & d.o.fs & iter & Ass.M.time & Solver time & Total time \\
+\hline
+$32\times 32$ & 3136 & 38 & $0.0088$ s & $1.2$ s & $0.65$ s \\
+$64\times 64$ & 12416 & 38 & $0.021$ s & $2.6$ s & $2.5$ s \\
+$128\times 128$ & 49408 & 38 & $0.069$ s & $13.9$ s & $13.7$ s \\
+$256\times 256$ & 197120 & 38 & $0.29$ s & $92.6$ s & $92.1$ s \\
+$512\times 512$ & 787456 & 38 & $1.4$ s & $692.5.1$ s & $690.1$ s \\
+$1024\times 1024$ & 3147776 & 38 & $6.5$ s & $5090.8$ s & $5090.3$ s \\
+\hline 
+\end{tabular}
+\smallskip
+\begin{itemize}
+\item $tol = 1e-7$
+\item $\beta = 10$
+\end{itemize}
+\end{frame}
+
+\begin{frame}
+\frametitle{Numerical results of Example 3 on Mesh 1}
+\begin{figure}[H] 
+\centering 
+\includegraphics[scale=0.46]{figures/M1P3b10t7rurp.eps} 
+\caption{$r_p, r_u(Mesh 1)$}
+\label{fig:rpmesh1p3}
+\end{figure}
+\end{frame}
+
+\begin{frame}
+\frametitle{Numerical results of Example 3 on Mesh 1}
+\begin{figure}[H] 
+\centering 
+\includegraphics[scale=0.46]{figures/M1P3b10t7updp.eps} 
+\caption{Convergence rate of $\boldsymbol{u}, p, \nabla p$}
+\label{fig:upmesh1p3} 
+\end{figure}
+\end{frame}
+
+\begin{frame}
+\frametitle{Numerical results of Example 3 on Mesh 1}
+\begin{figure}[H] 
+\centering 
+\includegraphics[scale=0.46]{figures/M1P3b10t7ucu.eps} 
+\caption{Convergence rate of $\left|\boldsymbol{u}\right|-\left|Q\boldsymbol{u}\right|$,$(\left|\boldsymbol{u}\right|-\left|Q\boldsymbol{u}\right|)\boldsymbol{u}$,$\left|\boldsymbol{u}\right|\boldsymbol{u}-\left|Q\boldsymbol{u}\right|\boldsymbol{u}_h$}
+\label{fig:normumesh1p3} 
+\end{figure}
+\end{frame}
+
+\begin{frame}
+\frametitle{Numerical results of Example 3 on Mesh 2}
+\begin{tabular}{ |c|c|c|c|c|c| }   
+\hline   
+Partition & d.o.fs & iter & Ass.M.time & Solver time & Total time \\
+\hline
+$32\times 40$ & 3912 & 36 & $0.0098$ s & $1.3$ s & $0.7$ s \\
+$64\times 80$ & 15504 & 36 & $0.025$ s & $3.5$ s & $3.4$ s \\
+$128\times 160$ & 61728 & 36 & $0.085$ s & $18.9$ s & $18.7$ s \\
+$256\times 320$ & 246336 & 36 & $0.37$ s & $138.3$ s & $137.6$ s \\
+$512\times 640$ & 984192 & 36 & $1.8$ s & $1234.2$ s & $1231.0$ s \\
+$1024\times 1280$ & 3934464 & 36 & $8.1$ s & $9265.7$ s & $9252.3$ s \\
+\hline 
+\end{tabular}
+\smallskip
+\begin{itemize}
+\item $tol = 1e-7$
+\item $\beta = 10$
+\end{itemize}
+\end{frame}
+
+\begin{frame}
+\frametitle{Numerical results of Example 3 on Mesh 2}
+\begin{tabular}{ |c|c|c|c|c| }   
+\hline   
+Partition & d.o.fs & iter & $e_{\boldsymbol{u}}$ & $e_p$ \\
+\hline
+$4\times10$ & 258 & 19 & $4.42289988824e-07$ & $8.74338316364e-08$  \\
+$8\times20$ & 996 & 19 & $7.48196538086e-07$ & $1.33886338103e-07$  \\
+$16\times40$ & 3912 & 20 & $4.76223116451e-07$ & $8.13880996765e-08$  \\
+$32\times80$ & 15505 & 20 & $4.97031353844e-07$ & $8.43455623925e-08$  \\
+\hline  
+\end{tabular}
+\end{frame}
+
+\begin{frame}
+\frametitle{Numerical results of Example 3 on Mesh 2}
+\begin{tabular}{ |c|c|c|c|c| }   
+\hline   
+Partition & d.o.fs & iter & $r_{\boldsymbol{u}}$ & $r_p$ \\
+\hline
+$4\times10$ & 258 & 19 & $2.85338420212e-07$ & $0.00016607880514$ \\
+$8\times20$ & 996 & 19 & $5.27126677478e-07$ & $4.14964299659e-05$ \\
+$16\times40$ & 3912 & 20 & $3.49961504576e-07$ & $1.03726537362e-05$ \\
+$32\times80$ & 15504 & 20 & $3.71054941762e-07$ & $2.59307258414e-06$ \\
+\hline
+\end{tabular}
+\end{frame}
+
+\begin{frame}
+\frametitle{Numerical results of Example 3 on Mesh 2}
+\begin{figure}[H] 
+\centering 
+\includegraphics[scale=0.46]{figures/nx4ny10_r2.eps} 
+\caption{$r_p, r_u(Mesh 2)$}
+\label{fig:rpmesh2p3}
+\end{figure}
+\end{frame}
+
+\begin{frame}
+\frametitle{Numerical results of Example 3 on Mesh 2}
+\begin{figure}[H] 
+\centering 
+\includegraphics[scale=0.46]{figures/nx4ny10tol_6updp2.eps} 
+\caption{Convergence rate of $\boldsymbol{u}, p, \nabla p$}
+\label{fig:upmesh2p3} 
+\end{figure}
+\end{frame}
+
+\begin{frame}
+\frametitle{Numerical results of Example 3 on Mesh 2}
+\begin{figure}[H] 
+\centering 
+\includegraphics[scale=0.46]{figures/nx4ny10tol_6ucu2.eps} 
+\caption{Convergence rate of $\left|\boldsymbol{u}\right|-\left|Q\boldsymbol{u}\right|$,$(\left|\boldsymbol{u}\right|-\left|Q\boldsymbol{u}\right|)\boldsymbol{u}$,$\left|\boldsymbol{u}\right|\boldsymbol{u}-\left|Q\boldsymbol{u}\right|\boldsymbol{u}_h$}
+\label{fig:normumesh2p3} 
+\end{figure}
+\end{frame}
+
+\begin{frame}
+\frametitle{Numerical results of Example 3 on Mesh 3}
+\begin{tabular}{ |c|c|c|c|c| }   
+\hline   
+Partition & d.o.fs & iter & $e_{\boldsymbol{u}}$ & $e_p$ \\
+\hline
+$4\times4$ & 56 & 16 & $5.78272674176e-07$ & $1.48231326255e-07$  \\
+$8\times8$ & 208 & 18 &$7.51682656048e-07$ & $1.28134293275e-07$  \\
+$16\times16$ & 800 & 19 &$6.67041507577e-07$ & $1.19007362872e-07$  \\
+$32\times32$ & 3136 & 19 &$8.37490087924e-07$ & $1.46691514221e-07$  \\
+\hline
+\end{tabular}
+\end{frame}
+
+\begin{frame}
+\frametitle{Numerical results of Example 3 on Mesh 3}
+\begin{tabular}{ |c|c|c|c|c| }   
+\hline   
+Partition & d.o.fs & iter & $r_{\boldsymbol{u}}$ & $r_p$ \\
+\hline
+$4\times4$ & 56 & 16 & $2.97612790637e-07$ & $0.000206144759669$ \\
+$8\times8$ & 208 & 18 & $5.88566816673e-07$ & $5.12766670195e-05$ \\
+$16\times16$ & 800 & 19 & $5.00213025771e-07$ & $1.28030102367e-05$ \\
+$32\times32$ & 3136 & 19 & $6.27640746047e-07$ & $3.19974376793e-06$ \\
+\hline
+\end{tabular}
+\end{frame}
+
+\begin{frame}
+\frametitle{Numerical results of Example 3 on Mesh 3}
+\begin{figure}[H] 
+\centering 
+\includegraphics[scale=0.46]{figures/hx4hy4_r2.eps} 
+\caption{$r_p, r_u(Mesh 3)$}
+\label{fig:rpmesh3p3}
+\end{figure}
+\end{frame}
+
+\begin{frame}
+\frametitle{Numerical results of Example 3 on Mesh 3}
+\begin{figure}[H] 
+\centering 
+\includegraphics[scale=0.46]{figures/hx4hy4tol_6updp2.eps} 
+\caption{Convergence rate of $\boldsymbol{u}, p, \nabla p$}
+\label{fig:upmesh3p3} 
+\end{figure}
+\end{frame}
+
+\begin{frame}
+\frametitle{Numerical results of Example 3 on Mesh 3}
+\begin{figure}[H] 
+\centering 
+\includegraphics[scale=0.46]{figures/hx4hy4tol_6ucu2.eps} 
+\caption{Convergence rate of $\left|\boldsymbol{u}\right|-\left|Q\boldsymbol{u}\right|$,$(\left|\boldsymbol{u}\right|-\left|Q\boldsymbol{u}\right|)\boldsymbol{u}$,$\left|\boldsymbol{u}\right|\boldsymbol{u}-\left|Q\boldsymbol{u}\right|\boldsymbol{u}_h$}
+\label{fig:normumesh3p3} 
+\end{figure}
+\end{frame}
+
+\begin{frame}
+\frametitle{Numerical results of Example 3 on Mesh 4}
+\begin{tabular}{ |c|c|c|c|c| }   
+\hline   
+Partition & d.o.fs & iter & $e_{\boldsymbol{u}}$ & $e_p$ \\
+\hline
+$4\times5$ & 69 & 17 & $5.04266928901e-07$ & $1.1550785686e-07$  \\
+$8\times10$ & 258 & 18 &$8.46199312164e-07$ & $1.4652889256e-07$  \\
+$16\times20$ & 996 & 19 &$6.83398735563e-07$ & $1.23367017919e-07$  \\
+$32\times40$ & 3912 & 19 &$5.94602080247e-07$ & $1.47990012568e-07$  \\
+\hline
+\end{tabular}
+\end{frame}
+
+\begin{frame}
+\frametitle{Numerical results of Example 3 on Mesh 4}
+\begin{tabular}{ |c|c|c|c|c| }   
+\hline   
+Partition & d.o.fs & iter & $r_{\boldsymbol{u}}$ & $r_p$ \\
+\hline
+$4\times5$ & 69 & 17 & $2.50142876866e-07$ & $0.000768340023492$ \\
+$8\times10$ & 258 & 18 & $6.82059435755e-07$ & $0.000191445290232$ \\
+$16\times20$ & 996 & 19 & $4.90534560039e-07$ & $4.78214651075e-05$ \\
+$32\times40$ & 3912 & 19 & $5.94602080247e-07$ & $1.195287713e-05$ \\
+\hline 
+\end{tabular}
+\end{frame}
+
+\begin{frame}
+\frametitle{Numerical results of Example 3 on Mesh 4}
+\begin{figure}[H] 
+\centering 
+\includegraphics[scale=0.46]{figures/hx4hy5_r2.eps} 
+\caption{$r_p, r_u(Mesh 4)$}
+\label{fig:rpmesh4p3}
+\end{figure}
+\end{frame}
+
+\begin{frame}
+\frametitle{Numerical results of Example 3 on Mesh 4}
+\begin{figure}[H] 
+\centering 
+\includegraphics[scale=0.46]{figures/hx4hy5tol_6updp2.eps} 
+\caption{Convergence rate of $\boldsymbol{u}, p, \nabla p$}
+\label{fig:upmesh4p3} 
+\end{figure}
+\end{frame}
+
+\begin{frame}
+\frametitle{Numerical results of Example 3 on Mesh 4}
+\begin{figure}[H] 
+\centering 
+\includegraphics[scale=0.46]{figures/hx4hy5tol_6ucu2.eps} 
+\caption{Convergence rate of $\left|\boldsymbol{u}\right|-\left|Q\boldsymbol{u}\right|$,$(\left|\boldsymbol{u}\right|-\left|Q\boldsymbol{u}\right|)\boldsymbol{u}$,$\left|\boldsymbol{u}\right|\boldsymbol{u}-\left|Q\boldsymbol{u}\right|\boldsymbol{u}_h$}
+\label{fig:normumesh4p3} 
+\end{figure}
+\end{frame}
+
+\begin{frame}
+\frametitle{Numerical results of Example 3 on Mesh 4}
+\begin{tabular}{ |c|c|c|c|c|c| }   
+\hline   
+Partition & d.o.fs & iter & Ass.M.time & Solver time & Total time \\
+\hline
+$32\times 40$ & 3912 & 51 & $0.0097$ s & $1.6$ s & $1.1$ s \\
+$64\times 80$ & 15504 & 51 & $0.025$ s & $4.9$ s & $4.8$ s \\
+$128\times 160$ & 61728 & 51 & $0.086$ s & $26.9$ s & $26.7$ s \\
+$256\times 320$ & 246336 & 52 & $0.37$ s & $199.0$ s & $198.2$ s \\
+$512\times 640$ & 984192 & 52 & $1.8$ s & $1756.1$ s & $1753.0$ s \\
+$1024\times 1280$ & 3934464 & 52 & $8.2$ s & $13274.0$ s & $13261.2$ s \\
+\hline 
+\end{tabular}
+\smallskip
+\begin{itemize}
+\item $tol = 1e-9$
+\item $\beta = 10$
+\end{itemize}
+\end{frame}
+
+\begin{frame}
+\frametitle{Numerical results of Example 3 on Mesh 4}
+\begin{tabular}{ |c|c|c|c|c|c| }   
+\hline   
+Partition & d.o.fs & iter & Ass.M.time & Solver time & Total time \\
+\hline
+$32\times 40$ & 3912 & 132 & $0.0097$ s & $3.3$ s & $2.7$ s \\
+$64\times 80$ & 15504 & 132 & $0.025$ s & $12.6$ s & $12.5$ s \\
+$128\times 160$ & 61728 & 132 & $0.087$ s & $69.1$ s & $68.8$ s \\
+$256\times 320$ & 246336 & 138 & $0.38$ s & $525.2$ s & $524.5$ s \\
+$512\times 640$ & 984192 & 146 & $1.8$ s & $4931.8$ s & $4928.7$ s \\
+$1024\times 1280$ & 3934464 & 150 & $8.1$ s & $38146.1$ s & $38133.2$ s \\
+\hline 
+\end{tabular}
+\smallskip
+\begin{itemize}
+\item $tol = 1e-9$
+\item $\beta = 30$
+\end{itemize}
+\end{frame}
+
+\begin{frame}
+\frametitle{Example 4}
+
+\begin{itemize}
+\item \begin{equation*}
+\boldsymbol{u} = \begin{pmatrix}
+-y \\
+x
+\end{pmatrix}
+\end{equation*}
 \begin{equation*}
-\frac{ u_{i,1} - \mathcal{W}_{i,3}}{h_x} + \frac{ v_{i,2} - \mathcal{W}_{i,0}}{h_y} = g_i
-\end{equation*}　
-
-整理后得到:
-
-\begin{equation*}
-(\frac{1}{h_x^2C_{i,3}} + \frac{1}{h_y^2C_{i,0}})p_i - \frac{p_{l,3}}{h_x^2C_{i,3}} - \frac{p_{d,0}}{h_y^2C_{i,0}} = g_i + \frac{h_xf_{1,3}}{h_x^2C_{i,3}} + \frac{h_yf_{1,0}}{h_y^2C_{i,0}} - \frac{u_{i,1}}{h_x} - \frac{v_{i,2}}{h_y}
+p = \frac{2}{\pi}arctan(10(x+y-1))
 \end{equation*}
 
-5).当$u_{i,3}$ 是边界边上的中点的值时(左边的边界单元)，有
-
 \begin{equation*}
-\frac{\mathcal{W}_{i,1} - u_{i,3}}{h_x} + \frac{\mathcal{W}_{i,2} - \mathcal{W}_{i,0}}{h_y} = g_i
+\begin{split}
+\boldsymbol{f} = \begin{pmatrix}
+-(\mu/k + \rho\beta\sqrt{x^2 + y^2})y \\
+ + \frac{20}{\pi (1+(10(x+y-1))^2)} \\
+ \\
+(\mu/k + \rho\beta\sqrt{x^2 + y^2})x \\
+ + \frac{20}{\pi (1+(10(x+y-1))^2)} \\
+\end{pmatrix}
+\end{split}
 \end{equation*}
 
-整理后得到:
-
 \begin{equation*}
-\begin{aligned}
-(\frac{1}{h_x^2C_{i,1}} + \frac{1}{h_y^2C_{i,0}} + \frac{1}{h_y^2C_{i,2}})p_i & - \frac{p_{r,1}}{h_x^2C_{i,1}} - \frac{p_{d,0}}{h_y^2C_{i,0}} - \frac{p_{a,2}}{h_y^2C_{i,2}} \\
-& = g_i - \frac{h_xf_{1,1}}{h_x^2C_{i,1}} - \frac{h_yf_{1,2}}{h_y^2C_{i,2}} + \frac{h_yf_{1,0}}{h_y^2C_{i,0}} + \frac{u_{i,3}}{h_x}
-\end{aligned}
+g = 0
 \end{equation*}
 
-6).当$u_{i,1}$ 是边界边上中点的值时(右边的边界单元)，有
-\begin{equation*}
-\frac{ u_{i,1} - \mathcal{W}_{i,3}}{h_x} + \frac{ \mathcal{W}_{i,2} - \mathcal{W}_{i,0}}{h_y} = g_i
-\end{equation*}　
+\end{itemize}
 
-整理后得到:
+\end{frame}
 
-\begin{equation*}
-\begin{aligned}
-(\frac{1}{h_x^2C_{i,1}} + \frac{1}{h_y^2C_{i,0}} + \frac{1}{h_y^2C_{i,2}})p_i & - \frac{p_{l,3}}{h_x^2C_{i,1}} - \frac{p_{d,0}}{h_y^2C_{i,0}} - \frac{p_{a,2}}{h_y^2C_{i,2}} \\
-& =  g_i + \frac{h_xf_{1,3}}{h_x^2C_{i,3}} - \frac{h_yf_{1,2}}{h_y^2C_{i,2}} + \frac{h_yf_{1,0}}{h_y^2C_{i,0}} - \frac{u_{i,1}}{h_x}
-\end{aligned}
-\end{equation*}
+\begin{frame}
+\frametitle{Numerical results of Example 4 on Mesh 1}
+\begin{tabular}{ |c|c|c|c|c| }   
+\hline   
+Partition & d.o.fs & iter & $e_{\boldsymbol{u}}$ & $e_p$ \\
+\hline
+$4\times4$ & 56 & 22 & $4.41849521682e-07$ & $1.66150241008e-07$  \\
+$8\times8$ & 208 & 28 & $5.55551002897e-07$ & $9.73536327691e-08$  \\
+$16\times16$ & 800 & 32 & $6.6741643712e-07$ & $6.95271031476e-08$  \\
+$32\times32$ & 3136 & 34 & $7.40602548046e-07$ & $5.65221082581e-08$  \\
+\hline  
+\end{tabular}
+\end{frame}
 
-7).当$v_{i,0}$ 是边界边上中点的值时(下边的边界单元)，有
+\begin{frame}
+\frametitle{Numerical results of Example 4 on Mesh 1}
+\begin{tabular}{ |c|c|c|c|c| }   
+\hline   
+Partition & d.o.fs & iter & $r_{\boldsymbol{u}}$ & $r_p$ \\
+\hline
+$4\times4$ & 56 & 22 & $2.30285305737e-07$ & $1.11455139591e-16$ \\
+$8\times8$ & 208 & 28 & $3.45649237438e-07$ & $4.94533123544e-16$ \\
+$16\times16$ & 800 & 32 & $4.61477787236e-07$ & $6.25958807474e-16$ \\
+$32\times32$ & 3136 & 34 & $5.45184022878e-07$ & $6.87648866675e-16$ \\
+\hline
+\end{tabular}
+\end{frame}
 
-\begin{equation*}
-\frac{ \mathcal{W}_{i,1} - \mathcal{W}_{i,3}}{h_x} + \frac{\mathcal{W}_{i,2}- v_{i,0}}{h_y} = g_i
-\end{equation*}　
+\begin{frame}
+\frametitle{Numerical results of Example 4 on Mesh 1}
+\begin{figure}[H] 
+\centering 
+\includegraphics[scale=0.46]{figures/nx4ny4_r3.eps} 
+\caption{$r_p, r_u(Mesh 1)$}
+\label{fig:rpmesh1p4}
+\end{figure}
+\end{frame}
 
-整理后得到:
+\begin{frame}
+\frametitle{Numerical results of Example 4 on Mesh 1}
+\begin{figure}[H] 
+\centering 
+\includegraphics[scale=0.46]{figures/nx4ny4tol_6updp3.eps} 
+\caption{Convergence rate of $\boldsymbol{u}, p, \nabla p$}
+\label{fig:upmesh1p4} 
+\end{figure}
+\end{frame}
 
-\begin{equation*}
-\begin{aligned}
-(\frac{1}{h_x^2C_{i,1}} + \frac{1}{h_x^2C_{i,3}} + \frac{1}{h_y^2C_{i,2}})p_i & - \frac{p_{r,1}}{h_x^2C_{i,1}} - \frac{p_{l,3}}{h_x^2C_{i,3}} - \frac{p_{a,2}}{h_y^2C_{i,2}} \\ 
-& = g_i - \frac{h_xf_{1,1}}{h_x^2C_{i,1}} + \frac{h_xf_{1,3}}{h_x^2C_{i,3}} - \frac{h_yf_{1,2}}{h_y^2C_{i,2}} + \frac{v_{i,0}}{h_y}
-\end{aligned}
-\end{equation*}
+\begin{frame}
+\frametitle{Numerical results of Example 4 on Mesh 1}
+\begin{figure}[H] 
+\centering 
+\includegraphics[scale=0.46]{figures/nx4ny4tol_6ucu3.eps} 
+\caption{Convergence rate of $\left|\boldsymbol{u}\right|-\left|Q\boldsymbol{u}\right|$,$(\left|\boldsymbol{u}\right|-\left|Q\boldsymbol{u}\right|)\boldsymbol{u}$,$\left|\boldsymbol{u}\right|\boldsymbol{u}-\left|Q\boldsymbol{u}\right|\boldsymbol{u}_h$}
+\label{fig:normumesh1p4} 
+\end{figure}
+\end{frame}
 
-8).当$v_{i,2}$ 是边界边上中点的值时(上边的边界单元)，有
+\begin{frame}
+\frametitle{Numerical results of Example 4 on Mesh 1}
+\begin{tabular}{ |c|c|c|c|c|c| }   
+\hline   
+Partition & d.o.fs & iter & Ass.M.time & Solver time & Total time \\
+\hline
+$32\times 32$ & 3136 & 67 & $0.0084$ s & $1.7$ s & $1.1$ s \\
+$64\times 64$ & 12416 & 71 & $0.020$ s & $4.7$ s & $4.6$ s \\
+$128\times 128$ & 49408 & 72 & $0.066$ s & $25.8$ s & $25.6$ s \\
+$256\times 256$ & 197120 & 73 & $0.28$ s & $175.4$ s & $174.9$ s \\
+$512\times 512$ & 787456 & 73 & $1.3$ s & $1320.2$ s & $1318.0$ s \\
+$1024\times 1024$ & 3147776 & 73 & $6.0$ s & $9743.6$ s & $9734.6$ s \\
+\hline 
+\end{tabular}
+\smallskip
+\begin{itemize}
+\item $tol = 1e-7$
+\item $\beta = 10$
+\end{itemize}
+\end{frame}
 
-\begin{equation*}
-\frac{ \mathcal{W}_{i,1} - \mathcal{W}_{i,3}}{h_x} + \frac{ v_{i,2} - \mathcal{W}_{i,0}}{h_y} = g_i
-\end{equation*}　
+\begin{frame}
+\frametitle{Numerical results of Example 4 on Mesh 1}
+\begin{figure}[H] 
+\centering 
+\includegraphics[scale=0.46]{figures/M1P4b10t7rurp.eps} 
+\caption{$r_p, r_u(Mesh 1)$}
+\label{fig:rpmesh1p4}
+\end{figure}
+\end{frame}
 
-整理后得到:
+\begin{frame}
+\frametitle{Numerical results of Example 4 on Mesh 1}
+\begin{figure}[H] 
+\centering 
+\includegraphics[scale=0.46]{figures/M1P4b10t7updp.eps} 
+\caption{Convergence rate of $\boldsymbol{u}, p, \nabla p$}
+\label{fig:upmesh1p4} 
+\end{figure}
+\end{frame}
 
-\begin{equation*}
-\begin{aligned}
-(\frac{1}{h_x^2C_{i,1}} + \frac{1}{h_x^2C_{i,3}} + \frac{1}{h_y^2C_{i,0}})p_i & - \frac{p_{r,1}}{h_x^2C_{i,1}} - \frac{p_{l,3}}{h_x^2C_{i,3}} - \frac{p_{d,0}}{h_y^2C_{i,0}}\\
- & = g_i - \frac{h_xf_{1,1}}{h_x^2C_{i,1}} + \frac{h_xf_{1,3}}{h_x^2C_{i,3}} + \frac{h_yf_{1,0}}{h_y^2C_{i,0}} - \frac{v_{i,2}}{h_y}
-\end{aligned}
-\end{equation*}
+\begin{frame}
+\frametitle{Numerical results of Example 4 on Mesh 1}
+\begin{figure}[H] 
+\centering 
+\includegraphics[scale=0.46]{figures/M1P4b10t7ucu.eps} 
+\caption{Convergence rate of $\left|\boldsymbol{u}\right|-\left|Q\boldsymbol{u}\right|$,$(\left|\boldsymbol{u}\right|-\left|Q\boldsymbol{u}\right|)\boldsymbol{u}$,$\left|\boldsymbol{u}\right|\boldsymbol{u}-\left|Q\boldsymbol{u}\right|\boldsymbol{u}_h$}
+\label{fig:normumesh1p4} 
+\end{figure}
+\end{frame}
 
-9).全部为内部边的中点的值时(内部单元)，有
 
-\begin{equation*}
-\frac{ \mathcal{W}_{i,1} - \mathcal{W}_{i,3}}{h_x} + \frac{ \mathcal{W}_{i,2} - \mathcal{W}_{i,0}}{h_y} = g_i
-\end{equation*}　
 
-整理后得到:
+\begin{frame}
+\frametitle{Numerical results of Example 4 on Mesh 2}
+\begin{tabular}{ |c|c|c|c|c|c| }   
+\hline   
+Partition & d.o.fs & iter & Ass.M.time & Solver time & Total time \\
+\hline
+$32\times 40$ & 3912 & 54 & $0.0093$ s & $1.6$ s & $1.1$ s \\
+$64\times 80$ & 15504 & 59 & $0.024$ s & $5.6$ s & $5.5$ s \\
+$128\times 160$ & 61728 & 61 & $0.081$ s & $31.3$ s & $31.1$ s \\
+$256\times 320$ & 246336 & 62 & $0.35$ s & $236.5$ s & $235.8$ s \\
+$512\times 640$ & 984192 & 62 & $1.7$ s & $2120.0$ s & $2117.2$ s \\
+$1024\times 1280$ & 3934464 & 62 & $7.8$ s & $15806.9$ s & $15794.7$ s \\
+\hline 
+\end{tabular}
+\smallskip
+\begin{itemize}
+\item $tol = 1e-7$
+\item $\beta = 10$
+\end{itemize}
+\end{frame}
 
-\begin{equation*}
-\begin{aligned}
-(\frac{1}{h_x^2C_{i,1}} + \frac{1}{h_x^2C_{i,3}} + \frac{1}{h_y^2C_{i,0}} + \frac{1}{h_y^2C_{i,2}})p_i & - \frac{p_{r,1}}{h_x^2C_{i,1}} - \frac{p_{l,3}}{h_x^2C_{i,3}} - \frac{p_{d,0}}{h_y^2C_{i,0}} - \frac{p_{a,2}}{h_y^2C_{i,2}} \\
-& = g_i - \frac{h_xf_{1,1}}{h_x^2C_{i,1}} + \frac{h_xf_{1,3}}{h_x^2C_{i,3}} - \frac{h_yf_{1,2}}{h_y^2C_{i,2}} + \frac{h_yf_{1,0}}{h_y^2C_{i,0}}
-\end{aligned}
-\end{equation*}
+\begin{frame}
+\frametitle{Numerical results of Example 4 on Mesh 2}
+\begin{tabular}{ |c|c|c|c|c| }   
+\hline   
+Partition & d.o.fs & iter & $e_{\boldsymbol{u}}$ & $e_p$ \\
+\hline
+$4\times10$ & 258 & 32 & $8.17887130124e-07$ & $8.00654546673e-08$  \\
+$8\times20$ & 996 & 34 & $7.96356825908e-07$ & $5.92414751971e-08$  \\
+$16\times40$ & 3912 & 35 & $7.10708379359e-07$ & $4.73992348322e-08$  \\
+$32\times80$ & 15505 & 35 & $7.64264716344e-07$ & $4.96674429882e-08$  \\
+\hline  
+\end{tabular}
+\end{frame}
 
-再求解$\boldsymbol{u}$:
-\begin{equation*}
-\begin{aligned}
-u_m & = (f_{1,m} - \frac{p_{r} - p_{l}}{h_x})/C_m \\
-v_m & = (f_{2,m} - \frac{p_{l} - p_{r}}{h_y})/C_m
-\end{aligned}
-\end{equation*}
+\begin{frame}
+\frametitle{Numerical results of Example 4 on Mesh 2}
+\begin{tabular}{ |c|c|c|c|c| }   
+\hline   
+Partition & d.o.fs & iter & $r_{\boldsymbol{u}}$ & $r_p$ \\
+\hline
+$4\times10$ & 258 & 32 & $5.72526920985e-07$ & $4.59933232057e-16$ \\
+$8\times20$ & 996 & 34 & $5.89354834164e-07$ & $5.16195804859e-16$ \\
+$16\times40$ & 3912 & 35 & $5.38231237265e-07$ & $7.42876761373e-16$ \\
+$32\times80$ & 15504 & 35 & $5.83373932995e-07$ & $1.49684766035e-15$ \\
+\hline
+\end{tabular}
+\end{frame}
 
-\subsubsection{利用 $\nabla p$ 的隐格式}
-由模型中的第一个式子 
+\begin{frame}
+\frametitle{Numerical results of Example 4 on Mesh 2}
+\begin{figure}[H] 
+\centering 
+\includegraphics[scale=0.46]{figures/nx4ny10_r3.eps} 
+\caption{$r_p, r_u(Mesh 2)$}
+\label{fig:rpmesh2p4}
+\end{figure}
+\end{frame}
 
-\begin{equation}
-(\frac{\mu}{k} + \beta\rho|\boldsymbol{u}|)\boldsymbol{u} + \nabla p = \boldsymbol{f}
-\end{equation}
-可以得到
+\begin{frame}
+\frametitle{Numerical results of Example 4 on Mesh 2}
+\begin{figure}[H] 
+\centering 
+\includegraphics[scale=0.46]{figures/nx4ny10tol_6updp3.eps} 
+\caption{Convergence rate of $\boldsymbol{u}, p, \nabla p$}
+\label{fig:upmesh2p4} 
+\end{figure}
+\end{frame}
 
-\begin{equation}
-\boldsymbol{u} = \frac{f - \nabla p}{\frac{\mu}{k} + \beta\rho|\boldsymbol{u}|}
-\end{equation}
+\begin{frame}
+\frametitle{Numerical results of Example 4 on Mesh 2}
+\begin{figure}[H] 
+\centering 
+\includegraphics[scale=0.46]{figures/nx4ny10tol_6ucu3.eps} 
+\caption{Convergence rate of $\left|\boldsymbol{u}\right|-\left|Q\boldsymbol{u}\right|$,$(\left|\boldsymbol{u}\right|-\left|Q\boldsymbol{u}\right|)\boldsymbol{u}$,$\left|\boldsymbol{u}\right|\boldsymbol{u}-\left|Q\boldsymbol{u}\right|\boldsymbol{u}_h$}
+\label{fig:normumesh2p4} 
+\end{figure}
+\end{frame}
 
-对第一个式子求模，有
+\begin{frame}
+\frametitle{Numerical results of Example 4 on Mesh 3}
+\begin{tabular}{ |c|c|c|c|c| }   
+\hline   
+Partition & d.o.fs & iter & $e_{\boldsymbol{u}}$ & $e_p$ \\
+\hline
+$4\times4$ & 56 & 20 & $4.44625165956e-07$ & $2.09762209246e-07$  \\
+$8\times8$ & 208 & 26 &$7.21445244441e-07$ & $1.47491392679e-07$  \\
+$16\times16$ & 800 & 31 &$6.64779116274e-07$ & $7.89240802927e-08$  \\
+$32\times32$ & 3136 & 33 &$9.20201278204e-07$ & $7.56780493713e-08$  \\
+\hline
+\end{tabular}
+\end{frame}
 
-\begin{equation}
-\frac{\mu}{k}|\boldsymbol{u}| + \beta\rho|\boldsymbol{u}|^2 = |f - \nabla p|
-\end{equation}
-得
+\begin{frame}
+\frametitle{Numerical results of Example 4 on Mesh 3}
+\begin{tabular}{ |c|c|c|c|c| }   
+\hline   
+Partition & d.o.fs & iter & $r_{\boldsymbol{u}}$ & $r_p$ \\
+\hline
+$4\times4$ & 56 & 20 & $1.99169225136e-07$ & $2.16051869868e-16$ \\
+$8\times8$ & 208 & 26 & $4.17492672965e-07$ & $4.2618248394e-16$ \\
+$16\times16$ & 800 & 31 & $4.36312334034e-07$ & $9.09239115986e-16$ \\
+$32\times32$ & 3136 & 33 & $6.50146541897e-07$ & $5.50772160184e-16$ \\
+\hline
+\end{tabular}
+\end{frame}
 
-\begin{equation}
-|\boldsymbol{u}| = \frac{-\frac{\mu}{k} + \sqrt{\frac{\mu^2}{k^2} + 4\beta\rho|f-\nabla p|}}{2\beta\rho}
-\end{equation}
+\begin{frame}
+\frametitle{Numerical results of Example 4 on Mesh 3}
+\begin{figure}[H] 
+\centering 
+\includegraphics[scale=0.46]{figures/hx4hy4_r3.eps} 
+\caption{$r_p, r_u(Mesh 3)$}
+\label{fig:rpmesh3p4}
+\end{figure}
+\end{frame}
 
-把 $(9)$ 代入 $(7)$ 中得
+\begin{frame}
+\frametitle{Numerical results of Example 4 on Mesh 3}
+\begin{figure}[H] 
+\centering 
+\includegraphics[scale=0.46]{figures/hx4hy4tol_6updp3.eps} 
+\caption{Convergence rate of $\boldsymbol{u}, p, \nabla p$}
+\label{fig:upmesh3p4} 
+\end{figure}
+\end{frame}
 
-\begin{equation}
-\begin{aligned}
-\boldsymbol{u} & = \frac{f - \nabla p}{\frac{\mu}{k} + \beta\rho\frac{-\frac{\mu}{k} + \sqrt{\frac{\mu^2}{k^2} + 4\beta\rho|f-\nabla p|}}{2\beta\rho}}\\
-& \\
-& = \frac{f - \nabla p}{\frac{\mu}{2k} + \sqrt{\frac{\mu^2}{4k^2} + \beta\rho|f-\nabla p|}}
-\end{aligned}
-\end{equation}
+\begin{frame}
+\frametitle{Numerical results of Example 4 on Mesh 3}
+\begin{figure}[H] 
+\centering 
+\includegraphics[scale=0.46]{figures/hx4hy4tol_6ucu3.eps} 
+\caption{Convergence rate of $\left|\boldsymbol{u}\right|-\left|Q\boldsymbol{u}\right|$,$(\left|\boldsymbol{u}\right|-\left|Q\boldsymbol{u}\right|)\boldsymbol{u}$,$\left|\boldsymbol{u}\right|\boldsymbol{u}-\left|Q\boldsymbol{u}\right|\boldsymbol{u}_h$}
+\label{fig:normumesh3p4} 
+\end{figure}
+\end{frame}
 
-把 $(10)$ 代入 $\nabla \cdot \boldsymbol{u} = g$ 中得
+\begin{frame}
+\frametitle{Numerical results of Example 4 on Mesh 3}
+\begin{tabular}{ |c|c|c|c|c|c| }   
+\hline   
+Partition & d.o.fs & iter & Ass.M.time & Solver time & Total time \\
+\hline
+$32\times 32$ & 3136 & 67 & $0.0084$ s & $1.7$ s & $1.1$ s \\
+$64\times 64$ & 12416 & 71 & $0.020$ s & $4.7$ s & $4.6$ s \\
+$128\times 128$ & 49408 & 72 & $0.066$ s & $25.8$ s & $25.6$ s \\
+$256\times 256$ & 197120 & 73 & $0.28$ s & $175.4$ s & $174.9$ s \\
+$512\times 512$ & 787456 & 73 & $1.3$ s & $1320.2$ s & $1318.0$ s \\
+$1024\times 1024$ & 3147776 & 73 & $6.0$ s & $9743.6$ s & $9734.6$ s \\
+\hline 
+\end{tabular}
+\smallskip
+\begin{itemize}
+\item $tol = 1e-9$
+\item $\beta = 30$
+\end{itemize}
+\end{frame}
 
-\begin{equation}
-\nabla\cdot\frac{f - \nabla p}{\frac{\mu}{2k} + \sqrt{\frac{\mu^2}{4k^2} + \beta\rho|f-\nabla p|}} = g
-\end{equation}
 
-记 $\frac{\mu}{2k} + \sqrt{\frac{\mu^2}{4k^2} + \beta\rho|f-\nabla p|} = c(\nabla p)$
-$(11)$ 式变为
+\begin{frame}
+\frametitle{Numerical results of Example 4 on Mesh 4}
+\begin{tabular}{ |c|c|c|c|c| }   
+\hline   
+Partition & d.o.fs & iter & $e_{\boldsymbol{u}}$ & $e_p$ \\
+\hline
+$4\times5$ & 69 & 23 & $6.20224060082e-07$ & $1.27959100624e-07$  \\
+$8\times10$ & 258 & 28 &$6.80473195055e-07$ & $1.07586052289e-07$  \\
+$16\times20$ & 996 & 32 &$7.06492018895e-07$ & $7.08721431205e-08$  \\
+$32\times40$ & 3912 & 34 &$7.3604780198e-07$ & $5.59467668843e-08$  \\
+\hline
+\end{tabular}
+\end{frame}
 
-\subsection{非均匀剖分}
-\subsubsection{u,p组装成大矩阵}
-得到离散的形式之后，我们根据$\eqref{eq:um}$,$\eqref{eq:um}$,$\eqref{eq:uv}$组装出左端的矩阵 $\boldsymbol A$ 和右端的向量 $\boldsymbol b$，进而使得模型的问题转化成
+\begin{frame}
+\frametitle{Numerical results of Example 4 on Mesh 4}
+\begin{tabular}{ |c|c|c|c|c| }   
+\hline   
+Partition & d.o.fs & iter & $r_{\boldsymbol{u}}$ & $r_p$ \\
+\hline
+$4\times5$ & 69 & 23 & $4.04805961047e-07$ & $2.5058349314e-16$ \\
+$8\times10$ & 258 & 28 & $4.59965661692e-07$ & $7.7251528275e-16$ \\
+$16\times20$ & 996 & 32 & $5.21045628005e-07$ & $5.12037023306e-16$ \\
+$32\times40$ & 3912 & 34 & $5.63124567129e-07$ & $5.90922370069e-16$ \\
+\hline 
+\end{tabular}
+\end{frame}
 
-\begin{equation*}
-\boldsymbol A\boldsymbol U = \boldsymbol b
-\end{equation*}
+\begin{frame}
+\frametitle{Numerical results of Example 4 on Mesh 4}
+\begin{figure}[H] 
+\centering 
+\includegraphics[scale=0.46]{figures/hx4hy5_r3.eps} 
+\caption{$r_p, r_u(Mesh 4)$}
+\label{fig:rpmesh4p4}
+\end{figure}
+\end{frame}
 
-其中
-\begin{equation*}
-\boldsymbol A = \begin{pmatrix}
-\boldsymbol A_{11} & \boldsymbol A_{12} \\
-\boldsymbol A_{21} & \boldsymbol 0
-\end{pmatrix}_{(NE+NC)\times (NE+NC)},
-\boldsymbol U = \begin{pmatrix}
-\boldsymbol u \\
-\boldsymbol p
-\end{pmatrix}_{(NE+NC)\times 1},
-\boldsymbol b = \begin{pmatrix}
-\boldsymbol f \\
-\boldsymbol g
-\end{pmatrix}_{(NE+NC)\times 1}
-\end{equation*}
-注: $NE$ 是所有边的个数，$NC$ 是单元的个数。
+\begin{frame}
+\frametitle{Numerical results of Example 4 on Mesh 4}
+\begin{figure}[H] 
+\centering 
+\includegraphics[scale=0.46]{figures/hx4hy5tol_6updp3.eps} 
+\caption{Convergence rate of $\boldsymbol{u}, p, \nabla p$}
+\label{fig:upmesh4p4} 
+\end{figure}
+\end{frame}
 
-$A_{11}$ 是一个对角矩阵,我们记
+\begin{frame}
+\frametitle{Numerical results of Example 4 on Mesh 4}
+\begin{figure}[H] 
+\centering 
+\includegraphics[scale=0.46]{figures/hx4hy5tol_6ucu3.eps} 
+\caption{Convergence rate of $\left|\boldsymbol{u}\right|-\left|Q\boldsymbol{u}\right|$,$(\left|\boldsymbol{u}\right|-\left|Q\boldsymbol{u}\right|)\boldsymbol{u}$,$\left|\boldsymbol{u}\right|\boldsymbol{u}-\left|Q\boldsymbol{u}\right|\boldsymbol{u}_h$}
+\label{fig:normumesh4p4} 
+\end{figure}
+\end{frame}
 
-\begin{equation*}
-\boldsymbol C = \frac{\mu}{k} + \beta\rho\left|\boldsymbol{u}\right|
-\end{equation*}
+\begin{frame}
+\frametitle{Numerical results of Example 4 on Mesh 4}
+\begin{tabular}{ |c|c|c|c|c|c| }   
+\hline   
+Partition & d.o.fs & iter & Ass.M.time & Solver time & Total time \\
+\hline
+$32\times 40$ & 3912 & 90 & $0.0095$ s & $2.4$ s & $1.8$ s \\
+$64\times 80$ & 15504 & 94 & $0.024$ s & $8.8$ s & $4.8$ s \\
+$128\times 160$ & 61728 & 96 & $0.082$ s & $50.1$ s & $50.0$ s \\
+$256\times 320$ & 246336 & 96 & $0.37$ s & $365.8$ s & $365.1$ s \\
+$512\times 640$ & 984192 & 97 & $1.7$ s & $3264.2$ s & $3261.3$ s \\
+$1024\times 1280$ & 3934464 & 97 & $7.9$ s & $24641.3$ s & $24629.6$ s \\
+\hline 
+\end{tabular}
+\smallskip
+\begin{itemize}
+\item $tol = 1e-7$
+\item $\beta = 10$
+\end{itemize}
+\end{frame}
 
-有
-\begin{equation*}
-\boldsymbol A_{11} = \begin{bmatrix}
-\boldsymbol C_1 & 0 & \cdots & 0 & 0 \\
-0 & \boldsymbol C_2 & \cdots & 0 & 0 \\
-\vdots & \vdots & \ddots & \vdots & \vdots \\
-0 & 0 & \cdots & \boldsymbol C_{NE-1} & 0 \\
-0 & 0 & \cdots & 0 & \boldsymbol C_{NE}
-\end{bmatrix}
-\end{equation*}
 
-\newpage
-\nocite{*}
-\bibliography{ref}
 \end{document}
