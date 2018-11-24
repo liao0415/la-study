@@ -1,0 +1,7 @@
+FAS 
+1. 非线性迭代  
+我们使用 PR 迭代方法解耦非线性和限制。
+首先，我们通过解线性系统得到初值 $\boldsymbol{u}_k^0,p_k^0$:
+\begin{equation*}
+\frac{\mu}{\rho}\int_{\Omega}(\boldsymbol{K}^{-1}\boldsymbol{u}_k^0)\cdot\boldsymbol{\phi}_k dx
+\end{equation*}
